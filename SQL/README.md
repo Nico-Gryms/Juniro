@@ -95,6 +95,12 @@ Rejouables sans risque : ils ne créent que ce qui manque et ne touchent jamais 
 | `003_execution_logs.sql` | Journal du service (tables `execution_runs`, `execution_logs`) affiché dans l'application. À rejouer après 002 sur un nouveau projet. |
 | `004_lignes_buts.sql` | Lignes ±1,5 / ±3,5 : `mkt_p_over15`, `mkt_p_over35` dans `predictions`, « bien prévu » dans `v_prediction_results`, indicateurs dans `prediction_kpis`. À appliquer dans l'éditeur SQL de Supabase. |
 
+## 7_Atelier — application Windows de stratégies
+
+| Script | Contenu |
+|---|---|
+| `L1_CompteApplication.sql` | Compte SQL dédié à l'application : connexion `juniro_lab`, rôle `lab_app` (lecture seule sur `core`, `ml`, `sim`, `app` ; lecture et écriture sur `lab`), schéma `lab` pour ses futures tables. Saisir le mot de passe dans `@MotDePasse` avant d'exécuter, **sans enregistrer le fichier**. Rejouable : ne touche pas au mot de passe d'une connexion existante. |
+
 Requêtes du quotidien :
 
 ```sql

@@ -9,7 +9,7 @@ réalisent, pour savoir quoi ouvrir avant de modifier quelque chose.
 > [journal des modifications](#12-journal-des-modifications). Un document faux est pire qu'un
 > document absent.
 
-Dernière mise à jour : 8 novembre 2026.
+Dernière mise à jour : 11 novembre 2026.
 
 ---
 
@@ -28,6 +28,7 @@ Dernière mise à jour : 8 novembre 2026.
 11. [Résultats actuels et limites connues](#11-résultats-actuels-et-limites-connues)
 12. [Journal des modifications](#12-journal-des-modifications)
 13. [Application mobile et Supabase](#13-application-mobile-et-supabase)
+14. [Application Windows de stratégies (en préparation)](#14-application-windows-de-stratégies-en-préparation)
 
 ---
 
@@ -419,6 +420,7 @@ Les données brutes (`dbo`) ne sont jamais modifiées par le moteur. Ses objets 
 | `ml` | `ModelRuns` (une exécution de modèles), `MatchPredictions` (sorties par match) | A1 |
 | `sim` | `Runs` (résultat d'une stratégie/variante/ligue/phase), `Bets` (paris simulés), `LiveSignals` (paris proposés), `RuleScan` (balayage des seuils) | A1, A4, A5 |
 | `app` | vues de consultation | A3 |
+| `lab` | tables de l'application Windows de stratégies (vide pour l'instant, chapitre 14) | L1 |
 
 Ordre d'installation : A1 → A2 → premier `backtest` → A3 → A4 → A5 → réexécuter A3 et A4 → A6.
 
@@ -924,6 +926,7 @@ journaux sont préservés par `update.ps1`.
 | afficher une nouvelle donnée dans l'application | A8 (colonne de la vue) + `SQL\6_Supabase\001_schema.sql` (colonne de la table, même nom) + `App\Models` + la page XAML | dans cet ordre ; aucun changement dans `SupabaseSyncJob.cs` |
 | changer les seuils Gagnante / Perdante | vue `v_strategy_overview` (Supabase) et `App\AppConfig.cs` | les deux |
 | ajouter un compte utilisateur | tableau de bord Supabase > Authentication > Users > Add user | chapitre 13.4 |
+| changer les droits SQL de l'application de stratégies | `SQL\7_Atelier\L1_CompteApplication.sql` | bloc 3 (un `GRANT` par schéma), puis rejouer le script |
 | ajouter une information au bilan d'exécution | `JuniroRepository.cs` (`CompleteExecutionRunAsync`, `ExecutionRunResult`), C5 (colonne), vue `dbo.vw_ScraperRuns` | dans cet ordre |
 | ajouter une statistique scrapée | `ScrapedMatchData.cs`, `FlashscoreScraperJob.cs` (`ResolveStatTarget`), `JuniroRepository.cs`, vue `core.vw_Matches` (A2), `data.py`, `features.py` | dans cet ordre |
 | ajouter une variable calculée | `features.py` | `BASE_METRICS` ou nouveau bloc dans `build_match_features` |
@@ -968,6 +971,7 @@ Résumé détaillé : document « Résultats des backtests » du projet Juniro.
 
 | Date | Modification | Fichiers | Chapitre |
 |---|---|---|---|
+| 2026-11-11 | Compte SQL dédié à la future application Windows de stratégies : connexion `juniro_lab`, rôle `lab_app` (lecture seule sur `core`, `ml`, `sim`, `app` ; écriture sur `lab`), schéma `lab` | `SQL\7_Atelier\L1_CompteApplication.sql`, `SQL\README.md` | 5.2, 14 |
 | 2026-11-11 | Flashscore a renommé le bouton de la page « résultats » en « Montrer plus de matchs » : la collecte (rattrapage et backfill) s'arrêtait à 0 clic et ne voyait que les ~110 derniers matchs de chaque ligue. Bouton cherché d'abord dans le pied de section (`data-testid=wcl-section-footer`), libellés afficher / voir / montrer | `FlashscoreScraperJob.cs` (`CollectLeagueResultKeysAsync`) | 3.3 |
 | 2026-11-11 | Rattrapage : page « résultats » lue en entier (30 clics au plus au lieu de 3) pour retrouver les premières journées manquantes ; Q5 : fenêtre réglable, équipes en retard seules, bilan de saison par ligue | `FlashscoreScraperJob.cs`, `Deploy\appsettings.Production.template.json`, Q5 | 3.3 |
 | 2026-11-11 | Moteur : lecture tolérante du appsettings (virgule en trop, commentaires, comme .NET), pilote ODBC 17 pris automatiquement si le 18 manque ; `install-analytics.ps1` affichait « C » au lieu du chemin du appsettings | `settings.py`, `db.py`, tests, `Deploy\install-analytics.ps1` | 5.1 |
@@ -1162,3 +1166,45 @@ Limites : sans réseau, l'application n'affiche rien (pas de cache hors ligne). 
 plus un jour (copie du matin) ; un match joué n'a son score qu'après la copie du lendemain. L'Elo affiché
 est celui d'avant le dernier match connu de l'équipe. La version 2 n'a pas pu être compilée lors de son
 écriture : toute erreur de Visual Studio est à signaler pour correction.
+
+---
+
+## 14. Application Windows de stratégies (en préparation)
+
+**Fichiers :** `SQL\7_Atelier\L1_CompteApplication.sql`. Le code de l'application n'existe pas encore.
+
+But : une application Windows (WPF, C#) pour consulter les stratégies et leurs résultats, en créer de
+nouvelles et lancer les calculs du moteur (simulation, backtest, balayage, biais, placebo, activation
+en paris fictifs). Contrairement à l'application du chapitre 13, elle lit **directement SQL Server**
+sur le PC fixe, depuis n'importe quel poste relié par Tailscale (`100.80.8.107,49999`).
+
+### 14.1 Le compte SQL de l'application
+
+L'application n'utilise pas le compte du scraper. `L1_CompteApplication.sql` crée :
+
+| Objet | Rôle |
+|---|---|
+| connexion et utilisateur `juniro_lab` | ce que l'application met dans sa chaîne de connexion |
+| rôle `lab_app` | porte les droits ; `juniro_lab` en est membre |
+| schéma `lab` | futures tables de l'application (stratégies créées, demandes de calcul, stratégies actives) |
+
+Droits du rôle : `SELECT` sur `core`, `ml`, `sim`, `app` ; `SELECT`, `INSERT`, `UPDATE`, `DELETE`,
+`EXECUTE` sur `lab`. Aucun droit sur `dbo` ni sur `feat` : l'application ne peut modifier ni les
+matchs, ni les cotes, ni les résultats de simulation. Les vues de `core` et de `app` restent lisibles,
+car elles appartiennent au même propriétaire que les tables qu'elles lisent.
+
+Exécution : dans SSMS avec un compte administrateur du serveur, après avoir saisi un mot de passe
+(12 caractères au moins) dans `@MotDePasse`. **Ne pas enregistrer le fichier avec le mot de passe** :
+il est versionné. Lancé avec un mot de passe vide, le script ne crée rien. Il est rejouable et ne
+modifie jamais le mot de passe d'une connexion existante (`ALTER LOGIN` pour le changer).
+
+Le mot de passe ira dans un fichier de réglages local à l'application, exclu de GitHub comme les
+`appsettings*.json` (à ajouter au `.gitignore` quand le projet sera créé).
+
+### 14.2 Ce qui reste à construire
+
+Cadrage complet : document `app-windows-strategies.md` du projet Claude « Juniro ». Architecture prévue,
+pas encore réalisée : les calculs restent exécutés par le service du PC fixe, à partir de demandes que
+l'application écrit dans une table de `lab` ; les stratégies créées dans l'application et les
+stratégies actives en paris fictifs sont rangées dans des tables de `lab`, `config.json` restant la
+liste de base.
