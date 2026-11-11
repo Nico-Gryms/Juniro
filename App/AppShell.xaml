@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+  Navigation : 5 onglets. Les pages de détail (match, pari, stratégie, résultats, réglages)
+  sont enregistrées comme « routes » dans AppShell.xaml.cs et s'ouvrent par-dessus l'onglet courant.
+-->
+<Shell xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+       xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+       xmlns:views="clr-namespace:Juniro.App.Views"
+       x:Class="Juniro.App.AppShell"
+       Title="Juniro"
+       Shell.FlyoutBehavior="Disabled">
+
+    <TabBar>
+        <ShellContent Title="Matchs" Icon="tab_matches.png" Route="matches"
+                      ContentTemplate="{DataTemplate views:UpcomingPage}" />
+        <ShellContent Title="Classements" Icon="tab_standings.png" Route="standings"
+                      ContentTemplate="{DataTemplate views:StandingsPage}" />
+        <ShellContent Title="Stratégies" Icon="tab_strategies.png" Route="strategies"
+                      ContentTemplate="{DataTemplate views:StrategiesPage}" />
+        <ShellContent Title="Mes paris" Icon="tab_bets.png" Route="bets"
+                      ContentTemplate="{DataTemplate views:BetsPage}" />
+        <ShellContent Title="Plus" Icon="tab_more.png" Route="more"
+                      ContentTemplate="{DataTemplate views:MorePage}" />
+    </TabBar>
+
+</Shell>

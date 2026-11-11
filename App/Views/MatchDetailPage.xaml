@@ -1,0 +1,383 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--
+  Fiche d'un match : en-tête (équipes, score ou score probable, probabilités 1 N 2),
+  puis quatre onglets : Cotes, Indices, Stats, Forme. Bouton « J'ai parié » en bas.
+-->
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:Juniro.App.ViewModels"
+             xmlns:m="clr-namespace:Juniro.App.Models"
+             xmlns:c="clr-namespace:Juniro.App.Controls"
+             x:Class="Juniro.App.Views.MatchDetailPage"
+             x:DataType="vm:MatchDetailViewModel"
+             Title="{Binding LeagueLine}">
+
+    <Grid RowDefinitions="*,Auto">
+        <ScrollView>
+            <VerticalStackLayout Padding="16,8,16,24" Spacing="14">
+
+                <!-- En-tête -->
+                <Border Style="{StaticResource Card}" Padding="16,16">
+                    <VerticalStackLayout Spacing="14">
+                        <Label Text="{Binding KickoffLine}" Style="{StaticResource Muted}" HorizontalTextAlignment="Center" />
+                        <Grid ColumnDefinitions="*,Auto,*" ColumnSpacing="6">
+                            <VerticalStackLayout Spacing="6" HorizontalOptions="Center">
+                                <Border WidthRequest="48" HeightRequest="48" StrokeThickness="2" Stroke="{StaticResource HomeColor}"
+                                        StrokeShape="RoundRectangle 24" BackgroundColor="{StaticResource HomeSoft}" HorizontalOptions="Center">
+                                    <Label Text="{Binding HomeShort}" FontFamily="InterBold" FontSize="13"
+                                           HorizontalTextAlignment="Center" VerticalTextAlignment="Center" />
+                                </Border>
+                                <Label Text="{Binding HomeTeam}" Style="{StaticResource Strong}" FontSize="13.5" HorizontalTextAlignment="Center"
+                                       LineBreakMode="WordWrap" />
+                                <Label Text="{Binding HomeInfo}" Style="{StaticResource Muted}" FontSize="11" HorizontalTextAlignment="Center" />
+                            </VerticalStackLayout>
+                            <VerticalStackLayout Grid.Column="1" Spacing="4" VerticalOptions="Center" WidthRequest="112">
+                                <Label Text="{Binding CenterTop}" Style="{StaticResource Overline}" HorizontalTextAlignment="Center" />
+                                <Label Text="{Binding CenterMain}" FontFamily="DisplayHeavy" FontSize="28" CharacterSpacing="-0.5"
+                                       HorizontalTextAlignment="Center" />
+                                <Label Text="{Binding CenterSub}" Style="{StaticResource Muted}" FontSize="11" HorizontalTextAlignment="Center" />
+                            </VerticalStackLayout>
+                            <VerticalStackLayout Grid.Column="2" Spacing="6" HorizontalOptions="Center">
+                                <Border WidthRequest="48" HeightRequest="48" StrokeThickness="2" Stroke="{StaticResource AwayColor}"
+                                        StrokeShape="RoundRectangle 24" BackgroundColor="{StaticResource AwaySoft}" HorizontalOptions="Center">
+                                    <Label Text="{Binding AwayShort}" FontFamily="InterBold" FontSize="13"
+                                           HorizontalTextAlignment="Center" VerticalTextAlignment="Center" />
+                                </Border>
+                                <Label Text="{Binding AwayTeam}" Style="{StaticResource Strong}" FontSize="13.5" HorizontalTextAlignment="Center"
+                                       LineBreakMode="WordWrap" />
+                                <Label Text="{Binding AwayInfo}" Style="{StaticResource Muted}" FontSize="11" HorizontalTextAlignment="Center" />
+                            </VerticalStackLayout>
+                        </Grid>
+                        <VerticalStackLayout Spacing="6" IsVisible="{Binding HasPrediction}">
+                            <c:ProbabilityBar Home="{Binding PHome}" Draw="{Binding PDraw}" Away="{Binding PAway}" BarHeight="8" />
+                            <Grid ColumnDefinitions="*,*,*">
+                                <Label Text="{Binding PHomeLabel}" FontFamily="InterSemiBold" FontSize="12" TextColor="{StaticResource HomeColor}" />
+                                <Label Grid.Column="1" Text="{Binding PDrawLabel}" FontFamily="InterSemiBold" FontSize="12"
+                                       TextColor="{StaticResource TextMuted}" HorizontalTextAlignment="Center" />
+                                <Label Grid.Column="2" Text="{Binding PAwayLabel}" FontFamily="InterSemiBold" FontSize="12"
+                                       TextColor="{StaticResource AwayColor}" HorizontalTextAlignment="End" />
+                            </Grid>
+                        </VerticalStackLayout>
+                    </VerticalStackLayout>
+                </Border>
+
+                <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" />
+                <Label Text="{Binding Error}" Style="{StaticResource Error}" IsVisible="{Binding HasError}" />
+
+                <!-- Onglets -->
+                <Border Style="{StaticResource SegmentBar}">
+                    <FlexLayout Direction="Row" BindableLayout.ItemsSource="{Binding Tabs}"
+                                BindableLayout.ItemTemplate="{StaticResource SegmentTemplate}" />
+                </Border>
+
+                <!-- ============================== COTES ============================== -->
+                <VerticalStackLayout Spacing="12" IsVisible="{Binding IsOddsTab}">
+                    <Grid ColumnDefinitions="Auto,Auto,*" ColumnSpacing="6">
+                        <BoxView WidthRequest="10" HeightRequest="10" CornerRadius="3" Color="{StaticResource Accent}" VerticalOptions="Center" />
+                        <Label Grid.Column="1" Text="Valeur positive" Style="{StaticResource Muted}" VerticalOptions="Center" />
+                        <Label Grid.Column="2" Text="{Binding OddsLabel}" Style="{StaticResource Muted}" HorizontalTextAlignment="End" VerticalOptions="Center" />
+                    </Grid>
+
+                    <VerticalStackLayout Spacing="12" BindableLayout.ItemsSource="{Binding Markets}">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="m:MarketGroup">
+                                <Border Style="{StaticResource TableCard}">
+                                    <VerticalStackLayout>
+                                        <Grid Padding="12,10" ColumnDefinitions="*,40,40,42,56" ColumnSpacing="4">
+                                            <Label Text="{Binding Name}" Style="{StaticResource H3}" VerticalOptions="Center" />
+                                            <Label Grid.Column="1" Text="Modèle" Style="{StaticResource Caption}" FontSize="9.5" HorizontalTextAlignment="End" VerticalOptions="Center" />
+                                            <Label Grid.Column="2" Text="Juste" Style="{StaticResource Caption}" FontSize="9.5" HorizontalTextAlignment="End" VerticalOptions="Center" />
+                                            <Label Grid.Column="3" Text="Cote" Style="{StaticResource Caption}" FontSize="9.5" HorizontalTextAlignment="End" VerticalOptions="Center" />
+                                            <Label Grid.Column="4" Text="Valeur" Style="{StaticResource Caption}" FontSize="9.5" HorizontalTextAlignment="End" VerticalOptions="Center" />
+                                        </Grid>
+                                        <VerticalStackLayout BindableLayout.ItemsSource="{Binding Rows}">
+                                            <BindableLayout.ItemTemplate>
+                                                <DataTemplate x:DataType="m:SelectionRow">
+                                                    <VerticalStackLayout BackgroundColor="{Binding RowBackground}">
+                                                        <BoxView HeightRequest="1" />
+                                                        <Grid Padding="12,9" ColumnDefinitions="*,40,40,42,56" ColumnSpacing="4">
+                                                            <Label Text="{Binding ShortLabel}" Style="{StaticResource Strong}" FontSize="12.5"
+                                                                   VerticalOptions="Center" LineBreakMode="WordWrap" />
+                                                            <Label Grid.Column="1" Text="{Binding ModelText}" FontSize="12" TextColor="{StaticResource TextSoft}"
+                                                                   HorizontalTextAlignment="End" VerticalOptions="Center" />
+                                                            <Label Grid.Column="2" Text="{Binding FairOddText}" FontSize="12" TextColor="{StaticResource TextMuted}"
+                                                                   HorizontalTextAlignment="End" VerticalOptions="Center" />
+                                                            <Label Grid.Column="3" Text="{Binding OddText}" Style="{StaticResource Number}"
+                                                                   HorizontalTextAlignment="End" VerticalOptions="Center" />
+                                                            <Border Grid.Column="4" StrokeThickness="0" StrokeShape="RoundRectangle 6" Padding="4,3"
+                                                                    BackgroundColor="{Binding EdgeBackground}" HorizontalOptions="End" VerticalOptions="Center">
+                                                                <Label Text="{Binding EdgeText}" FontFamily="InterBold" FontSize="10.5"
+                                                                       TextColor="{Binding EdgeForeground}" />
+                                                            </Border>
+                                                        </Grid>
+                                                    </VerticalStackLayout>
+                                                </DataTemplate>
+                                            </BindableLayout.ItemTemplate>
+                                        </VerticalStackLayout>
+                                    </VerticalStackLayout>
+                                </Border>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </VerticalStackLayout>
+                    <Label Style="{StaticResource Muted}"
+                           Text="Cote juste = 1 / probabilité du modèle. Valeur = probabilité × cote − 1 : positive, le modèle estime la cote trop généreuse." />
+
+                    <!-- Paris fictifs des stratégies -->
+                    <Border Style="{StaticResource Card}" IsVisible="{Binding HasSignals}">
+                        <VerticalStackLayout Spacing="10">
+                            <Label Text="Stratégies sur ce match" Style="{StaticResource H3}" />
+                            <VerticalStackLayout Spacing="10" BindableLayout.ItemsSource="{Binding Signals}">
+                                <BindableLayout.ItemTemplate>
+                                    <DataTemplate x:DataType="m:SignalRow">
+                                        <VerticalStackLayout Spacing="2">
+                                            <Label Text="{Binding StrategyText}" FontFamily="InterSemiBold" TextColor="{StaticResource Accent}" />
+                                            <Label Text="{Binding BetText}" FontSize="13" />
+                                            <Label Text="{Binding ResultText}" FontSize="12" TextColor="{Binding ResultColor}" />
+                                        </VerticalStackLayout>
+                                    </DataTemplate>
+                                </BindableLayout.ItemTemplate>
+                            </VerticalStackLayout>
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <!-- Nos paris sur ce match -->
+                    <Border Style="{StaticResource Card}" IsVisible="{Binding HasBets}">
+                        <VerticalStackLayout Spacing="10">
+                            <Label Text="Nos paris sur ce match" Style="{StaticResource H3}" />
+                            <VerticalStackLayout Spacing="12" BindableLayout.ItemsSource="{Binding Bets}">
+                                <BindableLayout.ItemTemplate>
+                                    <DataTemplate x:DataType="m:UserBetRow">
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <Grid.GestureRecognizers>
+                                                <TapGestureRecognizer
+                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type vm:MatchDetailViewModel}}, Path=OpenBetCommand}"
+                                                    CommandParameter="{Binding .}" />
+                                            </Grid.GestureRecognizers>
+                                            <VerticalStackLayout Spacing="2">
+                                                <Label Text="{Binding BetText}" Style="{StaticResource Strong}" FontSize="13" />
+                                                <Label Text="{Binding WhoText}" Style="{StaticResource Muted}" />
+                                            </VerticalStackLayout>
+                                            <VerticalStackLayout Grid.Column="1" Spacing="2">
+                                                <Label Text="{Binding StakeText}" FontSize="12" HorizontalTextAlignment="End" />
+                                                <Label Text="{Binding ResultText}" FontFamily="InterBold" FontSize="13"
+                                                       TextColor="{Binding ResultColor}" HorizontalTextAlignment="End" />
+                                            </VerticalStackLayout>
+                                        </Grid>
+                                    </DataTemplate>
+                                </BindableLayout.ItemTemplate>
+                            </VerticalStackLayout>
+                        </VerticalStackLayout>
+                    </Border>
+                </VerticalStackLayout>
+
+                <!-- ============================== INDICES ============================== -->
+                <VerticalStackLayout Spacing="12" IsVisible="{Binding IsIndexTab}">
+                    <Label Style="{StaticResource Muted}" FontSize="13"
+                           Text="L'indice compte les critères favorables au pari parmi ceux évalués : modèle contre marché, valeur, forme, buts, xG et tendances des deux équipes. Touchez un pari pour voir son détail." />
+                    <Label Text="Pas de prédiction pour ce match : indices indisponibles." Style="{StaticResource Muted}"
+                           IsVisible="{Binding HasNoIndex}" />
+
+                    <!-- Pari détaillé -->
+                    <Border Style="{StaticResource CardAccent}" Padding="0" IsVisible="{Binding HasFocus}">
+                        <VerticalStackLayout>
+                            <VerticalStackLayout Padding="14" Spacing="12">
+                                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                                    <VerticalStackLayout Spacing="4">
+                                        <Label Text="{Binding FocusCaption}" Style="{StaticResource Overline}" TextColor="{StaticResource Accent}" />
+                                        <Label Text="{Binding FocusTitle}" FontFamily="DisplayHeavy" FontSize="16" />
+                                        <Label Text="{Binding Focus.SummaryText}" Style="{StaticResource Muted}" />
+                                    </VerticalStackLayout>
+                                    <VerticalStackLayout Grid.Column="1" HorizontalOptions="End">
+                                        <Label Text="{Binding Focus.ScoreText}" FontFamily="DisplayHeavy" FontSize="26"
+                                               TextColor="{Binding Focus.ScoreColor}" HorizontalTextAlignment="End" />
+                                        <Label Text="critères favorables" Style="{StaticResource Muted}" FontSize="11" HorizontalTextAlignment="End" />
+                                    </VerticalStackLayout>
+                                </Grid>
+                                <c:ScoreGauge Score="{Binding Focus.Score}" Total="{Binding Focus.Total}" Color="{Binding Focus.ScoreColor}" HeightRequest="8" />
+                            </VerticalStackLayout>
+                            <VerticalStackLayout BindableLayout.ItemsSource="{Binding Focus.Criteria}">
+                                <BindableLayout.ItemTemplate>
+                                    <DataTemplate x:DataType="m:Criterion">
+                                        <VerticalStackLayout>
+                                            <BoxView HeightRequest="1" />
+                                            <Grid Padding="14,10" ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                                                <Border WidthRequest="22" HeightRequest="22" StrokeThickness="0" StrokeShape="RoundRectangle 11"
+                                                        BackgroundColor="{Binding IconBackground}" VerticalOptions="Start">
+                                                    <Label Text="{Binding Icon}" FontFamily="InterBold" FontSize="12" TextColor="{Binding IconColor}"
+                                                           HorizontalTextAlignment="Center" VerticalTextAlignment="Center" />
+                                                </Border>
+                                                <VerticalStackLayout Grid.Column="1" Spacing="2">
+                                                    <Label Text="{Binding Title}" FontFamily="InterSemiBold" FontSize="12.5" />
+                                                    <Label Text="{Binding Detail}" Style="{StaticResource Muted}" IsVisible="{Binding HasDetail}" />
+                                                </VerticalStackLayout>
+                                            </Grid>
+                                        </VerticalStackLayout>
+                                    </DataTemplate>
+                                </BindableLayout.ItemTemplate>
+                            </VerticalStackLayout>
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <!-- Tous les paris -->
+                    <Grid ColumnDefinitions="*,Auto" Margin="0,6,0,0" IsVisible="{Binding HasFocus}">
+                        <Label Text="Tous les paris" Style="{StaticResource H3}" />
+                        <Label Grid.Column="1" Text="Trié par indice" Style="{StaticResource Muted}" VerticalOptions="Center" />
+                    </Grid>
+                    <Border Style="{StaticResource TableCard}" IsVisible="{Binding HasFocus}">
+                        <VerticalStackLayout BindableLayout.ItemsSource="{Binding Indices}">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate x:DataType="m:BetIndex">
+                                    <VerticalStackLayout>
+                                        <VerticalStackLayout.GestureRecognizers>
+                                            <TapGestureRecognizer
+                                                Command="{Binding Source={RelativeSource AncestorType={x:Type vm:MatchDetailViewModel}}, Path=FocusIndexCommand}"
+                                                CommandParameter="{Binding .}" />
+                                        </VerticalStackLayout.GestureRecognizers>
+                                        <BoxView HeightRequest="1" />
+                                        <Grid Padding="12,10" ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
+                                            <VerticalStackLayout Spacing="6">
+                                                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="6">
+                                                    <Label Text="{Binding Label}" Style="{StaticResource Strong}" FontSize="12.5" LineBreakMode="WordWrap" />
+                                                    <Label Grid.Column="1" Text="{Binding OddText}" Style="{StaticResource Muted}" />
+                                                </Grid>
+                                                <c:ScoreGauge Score="{Binding Score}" Total="{Binding Total}" Color="{Binding ScoreColor}" HeightRequest="5" />
+                                            </VerticalStackLayout>
+                                            <Label Grid.Column="1" Text="{Binding ScoreText}" FontFamily="DisplayHeavy" FontSize="14"
+                                                   TextColor="{Binding ScoreColor}" VerticalOptions="Center" WidthRequest="40" HorizontalTextAlignment="End" />
+                                            <Border Grid.Column="2" StrokeThickness="0" StrokeShape="RoundRectangle 6" Padding="4,3" WidthRequest="58"
+                                                    BackgroundColor="{Binding EdgeBackground}" VerticalOptions="Center">
+                                                <Label Text="{Binding EdgeText}" FontFamily="InterBold" FontSize="10.5" TextColor="{Binding EdgeForeground}"
+                                                       HorizontalTextAlignment="End" />
+                                            </Border>
+                                        </Grid>
+                                    </VerticalStackLayout>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </VerticalStackLayout>
+                    </Border>
+                </VerticalStackLayout>
+
+                <!-- ============================== STATS ============================== -->
+                <VerticalStackLayout Spacing="12" IsVisible="{Binding IsStatsTab}">
+                    <Label Text="Statistiques avant le match indisponibles." Style="{StaticResource Muted}" IsVisible="{Binding HasNoStats}" />
+
+                    <Border Style="{StaticResource Card}" IsVisible="{Binding HasMatchFacts}">
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="Statistiques du match" Style="{StaticResource H3}" Margin="0,0,0,6" />
+                            <VerticalStackLayout Spacing="12" BindableLayout.ItemsSource="{Binding MatchFacts}">
+                                <BindableLayout.ItemTemplate>
+                                    <DataTemplate x:DataType="m:CompareRow">
+                                        <VerticalStackLayout Spacing="5">
+                                            <Grid ColumnDefinitions="64,*,64">
+                                                <Label Text="{Binding Home}" FontFamily="{Binding HomeFont}" TextColor="{Binding HomeColor}" />
+                                                <Label Grid.Column="1" Text="{Binding Label}" Style="{StaticResource Muted}" HorizontalTextAlignment="Center" />
+                                                <Label Grid.Column="2" Text="{Binding Away}" FontFamily="{Binding AwayFont}" TextColor="{Binding AwayColor}"
+                                                       HorizontalTextAlignment="End" />
+                                            </Grid>
+                                            <c:ProbabilityBar Home="{Binding HomeShare}" Draw="0" Away="{Binding AwayShare}" BarHeight="4"
+                                                              IsVisible="{Binding HasBar}" />
+                                        </VerticalStackLayout>
+                                    </DataTemplate>
+                                </BindableLayout.ItemTemplate>
+                            </VerticalStackLayout>
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <Border Style="{StaticResource Card}" IsVisible="{Binding HasPreStats}">
+                        <VerticalStackLayout Spacing="4">
+                            <Grid ColumnDefinitions="64,*,64" Margin="0,0,0,6">
+                                <Label Text="{Binding HomeShort}" FontFamily="InterBold" TextColor="{StaticResource HomeColor}" />
+                                <Label Grid.Column="1" Text="Avant le match" Style="{StaticResource H3}" HorizontalTextAlignment="Center" />
+                                <Label Grid.Column="2" Text="{Binding AwayShort}" FontFamily="InterBold" TextColor="{StaticResource AwayColor}"
+                                       HorizontalTextAlignment="End" />
+                            </Grid>
+                            <VerticalStackLayout Spacing="12" BindableLayout.ItemsSource="{Binding PreStats}">
+                                <BindableLayout.ItemTemplate>
+                                    <DataTemplate x:DataType="m:CompareRow">
+                                        <VerticalStackLayout Spacing="5">
+                                            <Grid ColumnDefinitions="64,*,64">
+                                                <Label Text="{Binding Home}" FontFamily="{Binding HomeFont}" TextColor="{Binding HomeColor}" />
+                                                <Label Grid.Column="1" Text="{Binding Label}" Style="{StaticResource Muted}" HorizontalTextAlignment="Center" />
+                                                <Label Grid.Column="2" Text="{Binding Away}" FontFamily="{Binding AwayFont}" TextColor="{Binding AwayColor}"
+                                                       HorizontalTextAlignment="End" />
+                                            </Grid>
+                                            <c:ProbabilityBar Home="{Binding HomeShare}" Draw="0" Away="{Binding AwayShare}" BarHeight="4"
+                                                              IsVisible="{Binding HasBar}" />
+                                        </VerticalStackLayout>
+                                    </DataTemplate>
+                                </BindableLayout.ItemTemplate>
+                            </VerticalStackLayout>
+                        </VerticalStackLayout>
+                    </Border>
+                </VerticalStackLayout>
+
+                <!-- ============================== FORME ============================== -->
+                <VerticalStackLayout Spacing="12" IsVisible="{Binding IsFormTab}">
+                    <Border Style="{StaticResource TableCard}">
+                        <VerticalStackLayout>
+                            <Label Text="{Binding HomeTeam}" Style="{StaticResource H3}" Margin="14,12" />
+                            <Label Text="Pas de match terminé trouvé." Style="{StaticResource Muted}" Margin="14,0,14,12"
+                                   IsVisible="{Binding HasNoHomeForm}" />
+                            <VerticalStackLayout BindableLayout.ItemsSource="{Binding HomeForm}">
+                                <BindableLayout.ItemTemplate>
+                                    <DataTemplate x:DataType="m:FormLine">
+                                        <VerticalStackLayout>
+                                            <BoxView HeightRequest="1" />
+                                            <Grid Padding="14,10" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+                                                <Border WidthRequest="22" HeightRequest="24" StrokeThickness="0" StrokeShape="RoundRectangle 6"
+                                                        BackgroundColor="{Binding Color}" VerticalOptions="Center">
+                                                    <Label Text="{Binding Letter}" FontFamily="InterBold" FontSize="11" TextColor="{StaticResource OnAccent}"
+                                                           HorizontalTextAlignment="Center" VerticalTextAlignment="Center" />
+                                                </Border>
+                                                <VerticalStackLayout Grid.Column="1" Spacing="2">
+                                                    <Label Text="{Binding Opponent}" Style="{StaticResource Strong}" FontSize="12.5" />
+                                                    <Label Text="{Binding SubText}" Style="{StaticResource Muted}" />
+                                                </VerticalStackLayout>
+                                                <Label Grid.Column="2" Text="{Binding Score}" Style="{StaticResource Number}" VerticalOptions="Center" />
+                                            </Grid>
+                                        </VerticalStackLayout>
+                                    </DataTemplate>
+                                </BindableLayout.ItemTemplate>
+                            </VerticalStackLayout>
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <Border Style="{StaticResource TableCard}">
+                        <VerticalStackLayout>
+                            <Label Text="{Binding AwayTeam}" Style="{StaticResource H3}" Margin="14,12" />
+                            <Label Text="Pas de match terminé trouvé." Style="{StaticResource Muted}" Margin="14,0,14,12"
+                                   IsVisible="{Binding HasNoAwayForm}" />
+                            <VerticalStackLayout BindableLayout.ItemsSource="{Binding AwayForm}">
+                                <BindableLayout.ItemTemplate>
+                                    <DataTemplate x:DataType="m:FormLine">
+                                        <VerticalStackLayout>
+                                            <BoxView HeightRequest="1" />
+                                            <Grid Padding="14,10" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+                                                <Border WidthRequest="22" HeightRequest="24" StrokeThickness="0" StrokeShape="RoundRectangle 6"
+                                                        BackgroundColor="{Binding Color}" VerticalOptions="Center">
+                                                    <Label Text="{Binding Letter}" FontFamily="InterBold" FontSize="11" TextColor="{StaticResource OnAccent}"
+                                                           HorizontalTextAlignment="Center" VerticalTextAlignment="Center" />
+                                                </Border>
+                                                <VerticalStackLayout Grid.Column="1" Spacing="2">
+                                                    <Label Text="{Binding Opponent}" Style="{StaticResource Strong}" FontSize="12.5" />
+                                                    <Label Text="{Binding SubText}" Style="{StaticResource Muted}" />
+                                                </VerticalStackLayout>
+                                                <Label Grid.Column="2" Text="{Binding Score}" Style="{StaticResource Number}" VerticalOptions="Center" />
+                                            </Grid>
+                                        </VerticalStackLayout>
+                                    </DataTemplate>
+                                </BindableLayout.ItemTemplate>
+                            </VerticalStackLayout>
+                        </VerticalStackLayout>
+                    </Border>
+                </VerticalStackLayout>
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- J'ai parié -->
+        <Grid Grid.Row="1" Padding="16,10,16,16" BackgroundColor="{StaticResource Bg}">
+            <Button Text="+  J'ai parié sur ce match" Command="{Binding AddBetCommand}" />
+        </Grid>
+    </Grid>
+</ContentPage>

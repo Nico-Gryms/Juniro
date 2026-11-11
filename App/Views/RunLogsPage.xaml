@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Journal détaillé d'une exécution : bilan et événements (niveau, étape, match, message). -->
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:Juniro.App.ViewModels"
+             xmlns:m="clr-namespace:Juniro.App.Models"
+             x:Class="Juniro.App.Views.RunLogsPage"
+             x:DataType="vm:RunLogsViewModel"
+             Title="{Binding Title}">
+
+    <CollectionView ItemsSource="{Binding Logs}" SelectionMode="None">
+        <CollectionView.Header>
+            <VerticalStackLayout Padding="16,8,16,8" Spacing="12">
+                <Border Style="{StaticResource Card}">
+                    <VerticalStackLayout Spacing="6">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <Label Text="{Binding Run.SourceText}" Style="{StaticResource H3}" VerticalOptions="Center" />
+                            <Border Grid.Column="1" Style="{StaticResource Pill}" BackgroundColor="{Binding Run.StatusBackground}">
+                                <Label Text="{Binding Run.StatusText}" Style="{StaticResource PillText}" TextColor="{Binding Run.StatusColor}" />
+                            </Border>
+                        </Grid>
+                        <Label Style="{StaticResource Muted}">
+                            <Label.FormattedText>
+                                <FormattedString>
+                                    <Span Text="{Binding Run.DateText}" />
+                                    <Span Text="  ·  " />
+                                    <Span Text="{Binding Run.DurationText}" />
+                                </FormattedString>
+                            </Label.FormattedText>
+                        </Label>
+                        <Label Text="{Binding Run.CountsText}" FontFamily="InterSemiBold" FontSize="12.5" />
+                        <Label Text="{Binding Run.SummaryText}" Style="{StaticResource Muted}" />
+                    </VerticalStackLayout>
+                </Border>
+                <ScrollView Orientation="Horizontal" HorizontalScrollBarVisibility="Never">
+                    <HorizontalStackLayout Spacing="8" BindableLayout.ItemsSource="{Binding Filters}"
+                                           BindableLayout.ItemTemplate="{StaticResource ChipTemplate}" />
+                </ScrollView>
+                <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" />
+                <Label Text="{Binding Error}" Style="{StaticResource Error}" IsVisible="{Binding HasError}" />
+                <Label Text="{Binding CountText}" Style="{StaticResource Muted}" />
+            </VerticalStackLayout>
+        </CollectionView.Header>
+
+        <CollectionView.ItemTemplate>
+            <DataTemplate x:DataType="m:ExecutionLog">
+                <Grid Padding="16,3">
+                    <Border BackgroundColor="{StaticResource Card}" StrokeThickness="1" Stroke="{StaticResource LineSoft}"
+                            StrokeShape="RoundRectangle 12" Padding="11,9">
+                        <VerticalStackLayout Spacing="4">
+                            <Grid ColumnDefinitions="Auto,Auto,*" ColumnSpacing="8">
+                                <Label Text="{Binding TimeText}" FontFamily="InterSemiBold" FontSize="11" TextColor="{StaticResource TextMuted}" VerticalOptions="Center" />
+                                <Border Grid.Column="1" StrokeThickness="0" StrokeShape="RoundRectangle 5" Padding="5,1"
+                                        BackgroundColor="{Binding LevelBackground}" VerticalOptions="Center">
+                                    <Label Text="{Binding LevelText}" FontFamily="InterBold" FontSize="9.5" TextColor="{Binding LevelColor}" />
+                                </Border>
+                                <Label Grid.Column="2" Text="{Binding HeaderText}" Style="{StaticResource Muted}" FontSize="10.5"
+                                       LineBreakMode="WordWrap" VerticalOptions="Center" />
+                            </Grid>
+                            <Label Text="{Binding Message}" FontSize="12" TextColor="{StaticResource TextSoft}" LineBreakMode="WordWrap" />
+                            <Label Text="{Binding ExceptionText}" FontSize="10.5" TextColor="{StaticResource Lose}" LineBreakMode="WordWrap"
+                                   IsVisible="{Binding HasException}" />
+                        </VerticalStackLayout>
+                    </Border>
+                </Grid>
+            </DataTemplate>
+        </CollectionView.ItemTemplate>
+
+        <CollectionView.Footer>
+            <BoxView HeightRequest="24" Color="Transparent" />
+        </CollectionView.Footer>
+    </CollectionView>
+</ContentPage>

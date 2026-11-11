@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+  Modèles réutilisables :
+    ChipTemplate     bouton de filtre arrondi (ligues, périodes...)       -> FilterChip
+    SegmentTemplate  case d'un contrôle segmenté (Tous / Joués / À venir)  -> FilterChip,
+                     à placer dans un FlexLayout (largeurs égales) dans un Border SegmentBar
+    FormDotTemplate  pastille V / N / D de la forme récente               -> FormDot
+-->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+                    xmlns:m="clr-namespace:Juniro.App.Models">
+
+    <DataTemplate x:Key="ChipTemplate" x:DataType="m:FilterChip">
+        <Border StrokeThickness="1" Stroke="{Binding Stroke}" StrokeShape="RoundRectangle 18"
+                Padding="12,0" HeightRequest="34" BackgroundColor="{Binding Background}">
+            <Border.GestureRecognizers>
+                <TapGestureRecognizer Command="{Binding Command}" CommandParameter="{Binding Value}" />
+            </Border.GestureRecognizers>
+            <Label Text="{Binding Label}" TextColor="{Binding Foreground}" FontFamily="InterSemiBold" FontSize="12"
+                   VerticalOptions="Center" />
+        </Border>
+    </DataTemplate>
+
+    <DataTemplate x:Key="SegmentTemplate" x:DataType="m:FilterChip">
+        <Border FlexLayout.Grow="1" FlexLayout.Basis="0" StrokeThickness="0" StrokeShape="RoundRectangle 9"
+                MinimumHeightRequest="34" Padding="2,6" BackgroundColor="{Binding SegBackground}">
+            <Border.GestureRecognizers>
+                <TapGestureRecognizer Command="{Binding Command}" CommandParameter="{Binding Value}" />
+            </Border.GestureRecognizers>
+            <Label Text="{Binding Label}" TextColor="{Binding SegForeground}" FontFamily="InterSemiBold" FontSize="12"
+                   HorizontalTextAlignment="Center" VerticalOptions="Center" Margin="2,0" />
+        </Border>
+    </DataTemplate>
+
+    <DataTemplate x:Key="FormDotTemplate" x:DataType="m:FormDot">
+        <Border StrokeThickness="0" StrokeShape="RoundRectangle 4" WidthRequest="12" HeightRequest="17"
+                BackgroundColor="{Binding Color}" Padding="0">
+            <Label Text="{Binding Letter}" FontFamily="InterBold" FontSize="9" TextColor="{StaticResource OnAccent}"
+                   HorizontalTextAlignment="Center" VerticalTextAlignment="Center" />
+        </Border>
+    </DataTemplate>
+
+</ResourceDictionary>

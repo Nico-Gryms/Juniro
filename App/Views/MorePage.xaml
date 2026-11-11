@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Onglet « Plus » : résultats du modèle, réglages, état des données. -->
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:Juniro.App.ViewModels"
+             x:Class="Juniro.App.Views.MorePage"
+             x:DataType="vm:MoreViewModel"
+             Shell.NavBarIsVisible="False"
+             Title="Plus">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20,18,20,28" Spacing="14">
+            <Label Text="Plus" Style="{StaticResource H1}" />
+
+            <Border Style="{StaticResource TableCard}">
+                <VerticalStackLayout>
+                    <!-- Résultats du modèle -->
+                    <Grid Padding="14,14" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+                        <Grid.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding OpenResultsCommand}" />
+                        </Grid.GestureRecognizers>
+                        <Border WidthRequest="40" HeightRequest="40" StrokeThickness="0" StrokeShape="RoundRectangle 12"
+                                BackgroundColor="{StaticResource AccentSoft}">
+                            <Image Source="icon_results.png" WidthRequest="20" HeightRequest="20" />
+                        </Border>
+                        <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                            <Label Text="Résultats du modèle" Style="{StaticResource Strong}" FontSize="14" />
+                            <Label Text="Précision 1X2, BTTS, ±2,5, score exact, face au marché" Style="{StaticResource Muted}" />
+                        </VerticalStackLayout>
+                        <Image Grid.Column="2" Source="icon_chevron.png" WidthRequest="16" HeightRequest="16" Opacity="0.5" />
+                    </Grid>
+                    <BoxView HeightRequest="1" />
+                    <!-- Journal du service -->
+                    <Grid Padding="14,14" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+                        <Grid.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding OpenLogsCommand}" />
+                        </Grid.GestureRecognizers>
+                        <Border WidthRequest="40" HeightRequest="40" StrokeThickness="0" StrokeShape="RoundRectangle 12"
+                                BackgroundColor="{Binding Health.Background}">
+                            <BoxView WidthRequest="12" HeightRequest="12" CornerRadius="6" Color="{Binding Health.DotColor}"
+                                     HorizontalOptions="Center" VerticalOptions="Center" />
+                        </Border>
+                        <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                            <Label Text="Journal du service" Style="{StaticResource Strong}" FontSize="14" />
+                            <Label Text="{Binding Health.Text}" Style="{StaticResource Muted}" TextColor="{Binding Health.DotColor}" />
+                        </VerticalStackLayout>
+                        <Image Grid.Column="2" Source="icon_chevron.png" WidthRequest="16" HeightRequest="16" Opacity="0.5" />
+                    </Grid>
+                    <BoxView HeightRequest="1" />
+                    <!-- Réglages -->
+                    <Grid Padding="14,14" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+                        <Grid.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding OpenSettingsCommand}" />
+                        </Grid.GestureRecognizers>
+                        <Border WidthRequest="40" HeightRequest="40" StrokeThickness="0" StrokeShape="RoundRectangle 12"
+                                BackgroundColor="{StaticResource CardAlt}">
+                            <Image Source="icon_settings.png" WidthRequest="20" HeightRequest="20" />
+                        </Border>
+                        <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                            <Label Text="Réglages" Style="{StaticResource Strong}" FontSize="14" />
+                            <Label Text="{Binding Email}" Style="{StaticResource Muted}" />
+                        </VerticalStackLayout>
+                        <Image Grid.Column="2" Source="icon_chevron.png" WidthRequest="16" HeightRequest="16" Opacity="0.5" />
+                    </Grid>
+                </VerticalStackLayout>
+            </Border>
+
+            <Border Style="{StaticResource Card}">
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Données" Style="{StaticResource H3}" />
+                    <Label Text="{Binding SyncText}" />
+                    <Label Style="{StaticResource Muted}"
+                           Text="Matchs, cotes, prédictions et stratégies arrivent chaque matin du PC fixe (vers 06h15). Les scores et statistiques d'un match arrivent avec la copie du lendemain." />
+                </VerticalStackLayout>
+            </Border>
+
+            <Label Text="{Binding Version}" Style="{StaticResource Muted}" HorizontalTextAlignment="Center" />
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

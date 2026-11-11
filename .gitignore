@@ -1,0 +1,40 @@
+## Build
+[Bb]in/
+[Oo]bj/
+*.user
+*.suo
+
+## Visual Studio
+.vs/
+
+## Secrets et configuration locale (NE JAMAIS COMMITER)
+# Seul Deploy/appsettings.Production.template.json (sans mot de passe) est envoyé.
+appsettings.json
+appsettings.Development.json
+appsettings.Production.json
+appsettings.*.local.json
+
+## Logs et sorties
+logs/
+*.log
+
+## Paquets de deploiement
+Juniro.Releases/
+*.zip
+
+## Playwright
+.playwright/
+ms-playwright/
+
+## Moteur Python (Analytics)
+Analytics/.venv/
+Analytics/models/
+Analytics/rapports/
+Analytics/local.json
+Analytics/config.backup-*.json
+__pycache__/
+.pytest_cache/
+
+
+## Divers
+pwsh

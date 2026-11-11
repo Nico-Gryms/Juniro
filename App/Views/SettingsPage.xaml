@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Onglet « Réglages » : compte, nom affiché, état des données, déconnexion. -->
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:Juniro.App.ViewModels"
+             x:Class="Juniro.App.Views.SettingsPage"
+             x:DataType="vm:SettingsViewModel"
+             Title="Réglages">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="16,12,16,28" Spacing="14" MaximumWidthRequest="640">
+
+            <Border Style="{StaticResource Card}">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="Mon compte" Style="{StaticResource H2}" Margin="0" />
+                    <Label Text="{Binding Email}" Style="{StaticResource Muted}" />
+                    <Label Text="NOM AFFICHÉ (VISIBLE PAR VOTRE PARTENAIRE)" Style="{StaticResource Caption}" />
+                    <Entry Text="{Binding DisplayName}" Placeholder="Votre prénom" />
+                    <Button Text="Enregistrer le nom" Style="{StaticResource GhostButton}" Command="{Binding SaveNameCommand}" />
+                    <Label Text="{Binding Message}" FontSize="13" TextColor="{StaticResource Win}" />
+                    <Label Text="{Binding PartnerText}" Style="{StaticResource Muted}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <Border Style="{StaticResource Card}">
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="Données" Style="{StaticResource H2}" Margin="0" />
+                    <Label Text="{Binding SyncText}" />
+                    <Label Style="{StaticResource Muted}"
+                           Text="Les matchs, prédictions et stratégies sont envoyés chaque matin par le PC fixe (service Juniro, tâche « supabase-sync » vers 06h15). Vos paris sont enregistrés directement en ligne." />
+                </VerticalStackLayout>
+            </Border>
+
+            <Label Text="{Binding Error}" Style="{StaticResource Error}" IsVisible="{Binding HasError}" />
+            <Button Text="Se déconnecter" Style="{StaticResource DangerButton}" Command="{Binding SignOutCommand}" />
+            <Label Text="{Binding Version}" Style="{StaticResource Caption}" HorizontalTextAlignment="Center" />
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

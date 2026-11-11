@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Onglet « Stratégies » : paris fictifs en cours et stratégies simulées avec leur verdict. -->
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:Juniro.App.ViewModels"
+             xmlns:m="clr-namespace:Juniro.App.Models"
+             x:Class="Juniro.App.Views.StrategiesPage"
+             x:DataType="vm:StrategiesViewModel"
+             Shell.NavBarIsVisible="False"
+             Title="Stratégies">
+
+    <RefreshView IsRefreshing="{Binding IsRefreshing}" Command="{Binding RefreshCommand}">
+        <CollectionView ItemsSource="{Binding Items}" SelectionMode="Single" SelectedItem="{Binding SelectedItem}">
+
+            <CollectionView.Header>
+                <VerticalStackLayout Padding="16,18,16,6" Spacing="12">
+                    <Label Text="Stratégies" Style="{StaticResource H1}" Margin="4,0,0,4" />
+                    <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" />
+                    <Label Text="{Binding Error}" Style="{StaticResource Error}" IsVisible="{Binding HasError}" />
+
+                    <!-- Paris fictifs -->
+                    <Label Text="Paris fictifs en cours" Style="{StaticResource H2}" Margin="0" />
+                    <Label Text="Stratégies suivies en conditions réelles, seuils figés : la seule preuve qui compte."
+                           Style="{StaticResource Muted}" />
+                    <Label Text="Aucune stratégie active (config.json > live_strategies)." Style="{StaticResource Muted}"
+                           IsVisible="{Binding HasNoPaper}" />
+                    <VerticalStackLayout Spacing="10" BindableLayout.ItemsSource="{Binding Paper}">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="m:PaperSummary">
+                                <Border Style="{StaticResource Card}">
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type vm:StrategiesViewModel}}, Path=OpenPaperCommand}"
+                                            CommandParameter="{Binding .}" />
+                                    </Border.GestureRecognizers>
+                                    <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto" RowSpacing="4">
+                                        <Label Text="{Binding Title}" FontFamily="InterSemiBold" FontSize="13.5" />
+                                        <Border Grid.Column="1" Style="{StaticResource Pill}" BackgroundColor="{Binding VerdictColor}">
+                                            <Label Text="{Binding Verdict}" FontSize="11" FontAttributes="Bold" TextColor="{StaticResource Bg}" />
+                                        </Border>
+                                        <Label Grid.Row="1" Text="{Binding League}" Style="{StaticResource Muted}" />
+                                        <Label Grid.Row="1" Grid.Column="1" Text="{Binding RoiText}" FontSize="16" FontFamily="DisplayHeavy"
+                                               TextColor="{Binding RoiColor}" HorizontalTextAlignment="End" />
+                                        <Label Grid.Row="2" Grid.ColumnSpan="2" Text="{Binding DetailText}" Style="{StaticResource Muted}" />
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </VerticalStackLayout>
+
+                    <!-- Stratégies simulées -->
+                    <Label Text="Stratégies simulées" Style="{StaticResource H2}" Margin="0,10,0,0" />
+                    <Label Style="{StaticResource Muted}"
+                           Text="Dernier backtest, ligue par ligue. Verdict sur la période de test : gagnante si ROI ≥ +3 %, perdante si ROI ≤ −3 %, équilibrée entre les deux." />
+                    <Grid ColumnDefinitions="*,*,*" ColumnSpacing="10">
+                        <Border Style="{StaticResource Tile}">
+                            <VerticalStackLayout>
+                                <Label Text="GAGNANTES" Style="{StaticResource Caption}" />
+                                <Label Text="{Binding WinCount}" Style="{StaticResource BigNumber}" TextColor="{StaticResource Win}" />
+                            </VerticalStackLayout>
+                        </Border>
+                        <Border Grid.Column="1" Style="{StaticResource Tile}">
+                            <VerticalStackLayout>
+                                <Label Text="ÉQUILIBRÉES" Style="{StaticResource Caption}" />
+                                <Label Text="{Binding EvenCount}" Style="{StaticResource BigNumber}" TextColor="{StaticResource Even}" />
+                            </VerticalStackLayout>
+                        </Border>
+                        <Border Grid.Column="2" Style="{StaticResource Tile}">
+                            <VerticalStackLayout>
+                                <Label Text="PERDANTES" Style="{StaticResource Caption}" />
+                                <Label Text="{Binding LoseCount}" Style="{StaticResource BigNumber}" TextColor="{StaticResource Lose}" />
+                            </VerticalStackLayout>
+                        </Border>
+                    </Grid>
+                    <ScrollView Orientation="Horizontal" HorizontalScrollBarVisibility="Never">
+                        <HorizontalStackLayout Spacing="8"
+                                               BindableLayout.ItemsSource="{Binding Verdicts}"
+                                               BindableLayout.ItemTemplate="{StaticResource ChipTemplate}" />
+                    </ScrollView>
+                    <Picker Title="Ligue" ItemsSource="{Binding Leagues}" SelectedItem="{Binding SelectedLeague}" />
+                </VerticalStackLayout>
+            </CollectionView.Header>
+
+            <CollectionView.EmptyView>
+                <Label Text="Aucune stratégie pour ce filtre." Style="{StaticResource Muted}" HorizontalTextAlignment="Center" Margin="24" />
+            </CollectionView.EmptyView>
+
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="m:StrategyOverview">
+                    <Border Style="{StaticResource Card}" Margin="16,4" Padding="12">
+                        <Grid ColumnDefinitions="6,*,Auto" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="12" RowSpacing="3">
+                            <BoxView Grid.RowSpan="3" Color="{Binding VerdictColor}" CornerRadius="3" WidthRequest="6" />
+                            <Label Grid.Column="1" Text="{Binding Title}" FontAttributes="Bold" />
+                            <Label Grid.Column="2" Text="{Binding RoiTestText}" FontFamily="DisplayHeavy" FontSize="14"
+                                   TextColor="{Binding RoiTestColor}" HorizontalTextAlignment="End" />
+                            <Label Grid.Row="1" Grid.Column="1" Text="{Binding League}" Style="{StaticResource Muted}" />
+                            <Label Grid.Row="1" Grid.Column="2" Text="{Binding Verdict}" FontSize="12"
+                                   TextColor="{Binding VerdictColor}" HorizontalTextAlignment="End" />
+                            <Label Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Text="{Binding DetailText}" Style="{StaticResource Caption}" />
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </RefreshView>
+</ContentPage>

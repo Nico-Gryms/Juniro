@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--
+  Onglet « Mes paris » : nos paris ou les paris fictifs, récapitulatif (hier, 3 derniers
+  jours, total), bilan détaillé, courbe du ROI, répartitions et historique jour par jour.
+-->
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:Juniro.App.ViewModels"
+             xmlns:m="clr-namespace:Juniro.App.Models"
+             xmlns:c="clr-namespace:Juniro.App.Controls"
+             x:Class="Juniro.App.Views.BetsPage"
+             x:DataType="vm:BetsViewModel"
+             Shell.NavBarIsVisible="False"
+             Title="Mes paris">
+
+    <RefreshView IsRefreshing="{Binding IsRefreshing}" Command="{Binding RefreshCommand}">
+        <CollectionView ItemsSource="{Binding Days}" IsGrouped="True" SelectionMode="Single" SelectedItem="{Binding SelectedLine}">
+
+            <CollectionView.Header>
+                <VerticalStackLayout Padding="20,18,20,6" Spacing="14">
+                    <Label Text="Mes paris" Style="{StaticResource H1}" />
+
+                    <!-- Nos paris / paris fictifs, et qui -->
+                    <Border Style="{StaticResource SegmentBar}">
+                        <FlexLayout Direction="Row" BindableLayout.ItemsSource="{Binding Sources}"
+                                    BindableLayout.ItemTemplate="{StaticResource SegmentTemplate}" />
+                    </Border>
+                    <ScrollView Orientation="Horizontal" HorizontalScrollBarVisibility="Never" IsVisible="{Binding IsUserSource}">
+                        <HorizontalStackLayout Spacing="8" BindableLayout.ItemsSource="{Binding Owners}"
+                                               BindableLayout.ItemTemplate="{StaticResource ChipTemplate}" />
+                    </ScrollView>
+                    <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" />
+                    <Label Text="{Binding Error}" Style="{StaticResource Error}" IsVisible="{Binding HasError}" />
+
+                    <!-- Récapitulatif : hier, 3 derniers jours, total -->
+                    <Grid ColumnDefinitions="*,*,*" ColumnSpacing="8">
+                        <Border Style="{StaticResource CardAccent}" Padding="9,10">
+                            <VerticalStackLayout Spacing="3">
+                                <Label Text="{Binding Yesterday.Title}" Style="{StaticResource Overline}" TextColor="{StaticResource Accent}" />
+                                <Label Text="{Binding Yesterday.Subtitle}" Style="{StaticResource Muted}" FontSize="11" />
+                                <Label Text="{Binding Yesterday.ProfitText}" FontFamily="DisplayHeavy" FontSize="16" Margin="0,4,0,0"
+                                       TextColor="{Binding Yesterday.ProfitColor}" />
+                                <Label Text="{Binding Yesterday.RoiText}" FontFamily="InterSemiBold" FontSize="10.5" TextColor="{StaticResource TextSoft}" />
+                                <Label Text="{Binding Yesterday.RecordText}" Style="{StaticResource Muted}" FontSize="10" />
+                            </VerticalStackLayout>
+                        </Border>
+                        <Border Grid.Column="1" Style="{StaticResource Card}" Padding="9,10">
+                            <VerticalStackLayout Spacing="3">
+                                <Label Text="3 jours" Style="{StaticResource Overline}" />
+                                <Label Text="{Binding Last3.Subtitle}" Style="{StaticResource Muted}" FontSize="11" />
+                                <Label Text="{Binding Last3.ProfitText}" FontFamily="DisplayHeavy" FontSize="16" Margin="0,4,0,0"
+                                       TextColor="{Binding Last3.ProfitColor}" />
+                                <Label Text="{Binding Last3.RoiText}" FontFamily="InterSemiBold" FontSize="10.5" TextColor="{StaticResource TextSoft}" />
+                                <Label Text="{Binding Last3.RecordText}" Style="{StaticResource Muted}" FontSize="10" />
+                            </VerticalStackLayout>
+                        </Border>
+                        <Border Grid.Column="2" Style="{StaticResource Card}" Padding="9,10">
+                            <VerticalStackLayout Spacing="3">
+                                <Label Text="{Binding Total.Title}" Style="{StaticResource Overline}" />
+                                <Label Text="{Binding Total.BetsText}" Style="{StaticResource Muted}" FontSize="11" />
+                                <Label Text="{Binding Total.ProfitText}" FontFamily="DisplayHeavy" FontSize="16" Margin="0,4,0,0"
+                                       TextColor="{Binding Total.ProfitColor}" />
+                                <Label Text="{Binding Total.RoiText}" FontFamily="InterSemiBold" FontSize="10.5" TextColor="{StaticResource TextSoft}" />
+                                <Label Text="{Binding Total.RecordText}" Style="{StaticResource Muted}" FontSize="10" />
+                            </VerticalStackLayout>
+                        </Border>
+                    </Grid>
+                    <Label Style="{StaticResource Muted}" FontSize="11"
+                           Text="Par date de match. Les paris de la veille sont réglés avec la copie du matin (scores à J+1)." />
+
+                    <!-- Filtres du bilan détaillé -->
+                    <ScrollView Orientation="Horizontal" HorizontalScrollBarVisibility="Never">
+                        <HorizontalStackLayout Spacing="8" BindableLayout.ItemsSource="{Binding Periods}"
+                                               BindableLayout.ItemTemplate="{StaticResource ChipTemplate}" />
+                    </ScrollView>
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                        <Picker Title="Ligue" ItemsSource="{Binding Leagues}" SelectedItem="{Binding SelectedLeague}" />
+                        <Picker Grid.Column="1" Title="Stratégie" ItemsSource="{Binding Strategies}" SelectedItem="{Binding SelectedStrategy}" />
+                    </Grid>
+
+                    <!-- Bilan -->
+                    <Border Style="{StaticResource Card}">
+                        <VerticalStackLayout Spacing="12">
+                            <Grid ColumnDefinitions="*,Auto">
+                                <Label Text="Bilan de la période" Style="{StaticResource H3}" VerticalOptions="Center" />
+                                <Border Grid.Column="1" Style="{StaticResource Pill}" BackgroundColor="{Binding VerdictColor}">
+                                    <Label Text="{Binding Verdict}" Style="{StaticResource PillText}" TextColor="{StaticResource OnAccent}" />
+                                </Border>
+                            </Grid>
+                            <Grid ColumnDefinitions="*,*,*" RowDefinitions="Auto,Auto" ColumnSpacing="8" RowSpacing="8">
+                                <Border Style="{StaticResource Tile}">
+                                    <VerticalStackLayout>
+                                        <Label Text="BÉNÉFICE" Style="{StaticResource Caption}" />
+                                        <Label Text="{Binding ProfitText}" Style="{StaticResource BigNumber}" FontSize="16" TextColor="{Binding ProfitColor}" />
+                                    </VerticalStackLayout>
+                                </Border>
+                                <Border Grid.Column="1" Style="{StaticResource Tile}">
+                                    <VerticalStackLayout>
+                                        <Label Text="ROI" Style="{StaticResource Caption}" />
+                                        <Label Text="{Binding RoiText}" Style="{StaticResource BigNumber}" FontSize="16" TextColor="{Binding ProfitColor}" />
+                                    </VerticalStackLayout>
+                                </Border>
+                                <Border Grid.Column="2" Style="{StaticResource Tile}">
+                                    <VerticalStackLayout>
+                                        <Label Text="RÉUSSITE" Style="{StaticResource Caption}" />
+                                        <Label Text="{Binding HitText}" Style="{StaticResource BigNumber}" FontSize="16" />
+                                    </VerticalStackLayout>
+                                </Border>
+                                <Border Grid.Row="1" Style="{StaticResource Tile}">
+                                    <VerticalStackLayout>
+                                        <Label Text="PARIS" Style="{StaticResource Caption}" />
+                                        <Label Text="{Binding BetsText}" Style="{StaticResource BigNumber}" FontSize="16" />
+                                        <Label Text="{Binding PendingText}" Style="{StaticResource Muted}" FontSize="10.5" />
+                                    </VerticalStackLayout>
+                                </Border>
+                                <Border Grid.Row="1" Grid.Column="1" Style="{StaticResource Tile}">
+                                    <VerticalStackLayout>
+                                        <Label Text="MISES" Style="{StaticResource Caption}" />
+                                        <Label Text="{Binding StakesText}" Style="{StaticResource BigNumber}" FontSize="16" />
+                                    </VerticalStackLayout>
+                                </Border>
+                                <Border Grid.Row="1" Grid.Column="2" Style="{StaticResource Tile}">
+                                    <VerticalStackLayout>
+                                        <Label Text="COTE MOY." Style="{StaticResource Caption}" />
+                                        <Label Text="{Binding OddText}" Style="{StaticResource BigNumber}" FontSize="16" />
+                                    </VerticalStackLayout>
+                                </Border>
+                            </Grid>
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <!-- Courbe -->
+                    <Border Style="{StaticResource Card}">
+                        <VerticalStackLayout Spacing="10">
+                            <Grid ColumnDefinitions="*,Auto">
+                                <Label Text="Évolution" Style="{StaticResource H3}" VerticalOptions="Center" />
+                                <HorizontalStackLayout Grid.Column="1" Spacing="6"
+                                                       BindableLayout.ItemsSource="{Binding Curves}"
+                                                       BindableLayout.ItemTemplate="{StaticResource ChipTemplate}" />
+                            </Grid>
+                            <c:LineChartView Points="{Binding ChartPoints}" Suffix="{Binding ChartSuffix}" HeightRequest="220" />
+                            <Label Style="{StaticResource Muted}" FontSize="11" Text="Paris réglés, dans l'ordre des matchs. ROI = bénéfice cumulé / mises cumulées." />
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <!-- Répartitions -->
+                    <Border Style="{StaticResource Card}">
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="Par stratégie" Style="{StaticResource H3}" />
+                            <Label Text="Aucun pari réglé sur la période." Style="{StaticResource Muted}" IsVisible="{Binding HasNoStrategyBreakdown}" />
+                            <VerticalStackLayout BindableLayout.ItemsSource="{Binding ByStrategy}">
+                                <BindableLayout.ItemTemplate>
+                                    <DataTemplate x:DataType="m:BreakdownRow">
+                                        <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto" Padding="0,7">
+                                            <Label Text="{Binding Name}" Style="{StaticResource Strong}" FontSize="13" />
+                                            <Label Grid.Column="1" Text="{Binding RoiText}" FontFamily="InterBold" TextColor="{Binding RoiColor}" />
+                                            <Label Grid.Row="1" Text="{Binding DetailText}" Style="{StaticResource Muted}" FontSize="11" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </BindableLayout.ItemTemplate>
+                            </VerticalStackLayout>
+                            <Label Text="Par ligue" Style="{StaticResource H3}" Margin="0,10,0,0" />
+                            <VerticalStackLayout BindableLayout.ItemsSource="{Binding ByLeague}">
+                                <BindableLayout.ItemTemplate>
+                                    <DataTemplate x:DataType="m:BreakdownRow">
+                                        <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto" Padding="0,7">
+                                            <Label Text="{Binding Name}" Style="{StaticResource Strong}" FontSize="13" />
+                                            <Label Grid.Column="1" Text="{Binding RoiText}" FontFamily="InterBold" TextColor="{Binding RoiColor}" />
+                                            <Label Grid.Row="1" Text="{Binding DetailText}" Style="{StaticResource Muted}" FontSize="11" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </BindableLayout.ItemTemplate>
+                            </VerticalStackLayout>
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <Label Text="Historique" Style="{StaticResource H2}" Margin="0,6,0,0" />
+                </VerticalStackLayout>
+            </CollectionView.Header>
+
+            <CollectionView.EmptyView>
+                <VerticalStackLayout Padding="24" Spacing="6">
+                    <Label Text="Aucun pari pour ces filtres." HorizontalTextAlignment="Center" />
+                    <Label Text="Pour ajouter un pari : onglet Matchs, ouvrez le match puis « J'ai parié sur ce match »."
+                           Style="{StaticResource Muted}" HorizontalTextAlignment="Center" />
+                </VerticalStackLayout>
+            </CollectionView.EmptyView>
+
+            <CollectionView.GroupHeaderTemplate>
+                <DataTemplate x:DataType="m:BetDay">
+                    <Grid Padding="20,14,20,6" ColumnDefinitions="*,Auto">
+                        <Label Text="{Binding Title}" Style="{StaticResource Overline}" VerticalOptions="Center" />
+                        <Label Grid.Column="1" Text="{Binding ProfitText}" FontFamily="InterBold" FontSize="13"
+                               TextColor="{Binding ProfitColor}" VerticalOptions="Center" />
+                    </Grid>
+                </DataTemplate>
+            </CollectionView.GroupHeaderTemplate>
+
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="m:BetLine">
+                    <Grid Padding="16,4">
+                        <Border Style="{StaticResource Card}" Padding="13,12">
+                            <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto" RowSpacing="3" ColumnSpacing="10">
+                                <Label Text="{Binding MatchText}" Style="{StaticResource Strong}" LineBreakMode="WordWrap" />
+                                <Label Grid.Column="1" Text="{Binding ResultText}" FontFamily="DisplayHeavy" FontSize="14"
+                                       TextColor="{Binding ResultColor}" HorizontalTextAlignment="End" />
+                                <Label Grid.Row="1" Text="{Binding BetText}" FontSize="12" TextColor="{StaticResource TextSoft}" />
+                                <Border Grid.Row="1" Grid.Column="1" Style="{StaticResource Pill}" Padding="7,2" HorizontalOptions="End"
+                                        BackgroundColor="{Binding BadgeBackground}">
+                                    <Label Text="{Binding ResultBadge}" FontFamily="InterSemiBold" FontSize="11" TextColor="{Binding ResultColor}" />
+                                </Border>
+                                <Label Grid.Row="2" Text="{Binding SubText}" Style="{StaticResource Muted}" FontSize="10.5" LineBreakMode="WordWrap" />
+                                <Label Grid.Row="2" Grid.Column="1" Text="{Binding ScoreText}" Style="{StaticResource Muted}" HorizontalTextAlignment="End" />
+                            </Grid>
+                        </Border>
+                    </Grid>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+
+            <CollectionView.Footer>
+                <BoxView HeightRequest="24" Color="Transparent" />
+            </CollectionView.Footer>
+        </CollectionView>
+    </RefreshView>
+</ContentPage>

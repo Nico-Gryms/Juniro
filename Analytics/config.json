@@ -1,0 +1,310 @@
+{
+  "_aide": "Réglages du moteur. Chaque section est expliquée dans DOCUMENTATION.md : data et features (chap. 6, confrontations directes 6.7), elo (6.4), model (7), phases (7.3), simulation (8.2 à 8.5), scan (8.3, raw_signals 8.3), importance (7.6), live (8.5). Les clés commençant par _ sont ignorées.",
+
+  "database": {
+    "appsettings_files": [
+      "../app/appsettings.Production.json",
+      "../appsettings.Production.json",
+      "../appsettings.Development.json",
+      "../../appsettings.Production.json"
+    ],
+    "connection_name": "JuniroDb",
+    "odbc_driver": "ODBC Driver 18 for SQL Server"
+  },
+
+  "data": {
+    "exclude_league_ids": [],
+    "second_tier_name_pattern": "(?i)ligue 2|championship|bundesliga 2|2\\. bundesliga|laliga ?2|segunda|hypermotion|serie b",
+    "preferred_bookmaker_ids": [141],
+    "decision_labels": ["DAY", "J-1", "J-2", "J-3"],
+    "decision_mode": "estimated_fallback",
+    "opening_labels": ["OPENING"],
+    "closing_labels": ["CLOSING", "H-1"]
+  },
+
+  "features": {
+    "windows": [3, 5, 10],
+    "ewm_halflife": 5,
+    "shrink_k": 5,
+    "league_avg_window": 200,
+    "_aide_h2h": "Confrontations directes : désactivées, elles n'apportent rien (commande importance du 8 novembre 2026). Mettre enabled à true pour les réactiver.",
+    "h2h": { "enabled": false, "last_n": 5 }
+  },
+
+  "elo": {
+    "base": 1500,
+    "k": 20,
+    "home_advantage": 60,
+    "second_tier_offset": 150,
+    "season_regression": 0.2
+  },
+
+  "model": {
+    "train_window": "all",
+    "decay_halflife_days": 365,
+    "use_market_features": true,
+    "blend_weight_score_model": 0.5,
+    "dixon_coles": true,
+    "goal_calibration": "linear",
+    "calibration_fraction": 0.2,
+    "min_train_matches": 1500,
+    "exclude_feature_patterns": ["^(home|away)_(all|ven)_.*_3$", "^(home|away)_ven_.*_5$"],
+    "hgb": {
+      "max_iter": 1500,
+      "learning_rate": 0.03,
+      "max_leaf_nodes": 15,
+      "min_samples_leaf": 50,
+      "l2_regularization": 1.0,
+      "max_bins": 63,
+      "max_features": 1.0,
+      "early_stopping": true,
+      "n_iter_no_change": 40
+    },
+    "calibration_folds": 0
+  },
+
+  "phases": {
+    "tuning_start": "2022-07-01",
+    "test_start": "2024-07-01",
+    "holdout_start": "2026-07-01"
+  },
+
+  "simulation": {
+    "_aide_skip": "skip_first_season_matches : aucun pari tant qu'une des deux équipes a joué moins de N matchs dans la saison (transferts, moyennes encore issues de la saison précédente). 0 = parier dès la 1re journée. Vaut pour la simulation, le balayage et les paris proposés.",
+    "skip_first_season_matches": 5,
+    "bankroll": 100.0,
+    "bootstrap_samples": 1000,
+    "min_bets_for_selection": 80,
+    "by_league": true,
+    "include_all_leagues": false,
+    "min_bets_per_league": 30,
+    "selection_metric": "roi_pct",
+    "strategies": [
+      {
+        "name": "combo_plus25",
+        "description": "Votre idée : buts attendus élevés + BTTS probable + Plus de 2,5 probable => Plus de 2,5",
+        "bets": ["OU25_OVER"],
+        "conditions": [
+          ["exp_total_goals", ">=", 2.8],
+          ["p_btts_yes", ">=", 0.55],
+          ["p_over25", ">=", 0.55]
+        ],
+        "min_edge": null,
+        "min_odd": 1.30,
+        "max_odd": 4.00,
+        "staking": { "method": "flat", "units": 1.0 },
+        "grid": {
+          "conditions.0": [2.6, 2.8, 3.0, 3.2],
+          "conditions.1": [0.50, 0.55, 0.60],
+          "conditions.2": [0.50, 0.55, 0.60, 0.65],
+          "min_edge": [null, 0.0, 0.03]
+        }
+      },
+      {
+        "name": "combo_btts",
+        "description": "Même logique, mais on joue « les deux équipes marquent »",
+        "bets": ["BTTS_YES"],
+        "conditions": [
+          ["exp_total_goals", ">=", 2.8],
+          ["p_btts_yes", ">=", 0.55],
+          ["p_over25", ">=", 0.55]
+        ],
+        "min_edge": null,
+        "min_odd": 1.30,
+        "max_odd": 4.00,
+        "staking": { "method": "flat", "units": 1.0 },
+        "grid": {
+          "conditions.0": [2.6, 2.8, 3.0],
+          "conditions.1": [0.55, 0.60, 0.65],
+          "min_edge": [null, 0.0, 0.03]
+        }
+      },
+      {
+        "name": "combo_moins25",
+        "description": "Le miroir : peu de buts attendus + BTTS improbable => Moins de 2,5",
+        "bets": ["OU25_UNDER"],
+        "conditions": [
+          ["exp_total_goals", "<=", 2.2],
+          ["p_btts_yes", "<=", 0.45],
+          ["p_over25", "<=", 0.45]
+        ],
+        "min_edge": null,
+        "min_odd": 1.30,
+        "max_odd": 4.00,
+        "staking": { "method": "flat", "units": 1.0 },
+        "grid": {
+          "conditions.0": [2.0, 2.2, 2.4],
+          "conditions.1": [0.40, 0.45, 0.50],
+          "min_edge": [null, 0.0, 0.03]
+        }
+      },
+      {
+        "name": "value_1x2",
+        "description": "Pari de valeur pur : proba du modèle x cote > 1 + marge minimale",
+        "bets": ["1X2_HOME", "1X2_DRAW", "1X2_AWAY"],
+        "conditions": [],
+        "min_edge": 0.05,
+        "min_odd": 1.40,
+        "max_odd": 6.00,
+        "one_bet_per_match": true,
+        "staking": { "method": "flat", "units": 1.0 },
+        "grid": {
+          "min_edge": [0.02, 0.05, 0.08, 0.12]
+        }
+      },
+      {
+        "name": "value_buts",
+        "description": "Pari de valeur sur BTTS et Plus/Moins 2,5",
+        "bets": ["OU25_OVER", "OU25_UNDER", "BTTS_YES", "BTTS_NO"],
+        "conditions": [],
+        "min_edge": 0.04,
+        "min_odd": 1.40,
+        "max_odd": 4.00,
+        "one_bet_per_match": true,
+        "staking": { "method": "flat", "units": 1.0 },
+        "grid": {
+          "min_edge": [0.02, 0.04, 0.06, 0.08]
+        }
+      },
+      {
+        "name": "value_1x2_kelly",
+        "description": "Pari de valeur 1X2 avec mise proportionnelle (quart de Kelly, plafonné à 3 % de la bankroll)",
+        "bets": ["1X2_HOME", "1X2_DRAW", "1X2_AWAY", "DNB_HOME", "DNB_AWAY"],
+        "conditions": [],
+        "min_edge": 0.05,
+        "min_odd": 1.40,
+        "max_odd": 6.00,
+        "one_bet_per_match": true,
+        "staking": { "method": "kelly", "fraction": 0.25, "max_pct": 0.03 }
+      },
+      {
+        "name": "value_lignes_15_35",
+        "description": "Pari de valeur sur Plus/Moins 1,5 et 3,5 (ajouté le 10 novembre 2026)",
+        "bets": ["OU15_OVER", "OU15_UNDER", "OU35_OVER", "OU35_UNDER"],
+        "conditions": [],
+        "min_edge": 0.04,
+        "min_odd": 1.15,
+        "max_odd": 6.00,
+        "one_bet_per_match": true,
+        "staking": { "method": "flat", "units": 1.0 },
+        "grid": { "min_edge": [0.02, 0.04, 0.06, 0.08] }
+      },
+      {
+        "name": "combo_plus35",
+        "description": "Beaucoup de buts attendus + Plus de 3,5 probable => Plus de 3,5",
+        "bets": ["OU35_OVER"],
+        "conditions": [["exp_total_goals", ">=", 3.0], ["p_over35", ">=", 0.40]],
+        "min_edge": null,
+        "min_odd": 1.50,
+        "max_odd": 5.00,
+        "staking": { "method": "flat", "units": 1.0 },
+        "grid": { "conditions.0": [2.8, 3.0, 3.2], "conditions.1": [0.35, 0.40, 0.45], "min_edge": [null, 0.0, 0.03] }
+      },
+      {
+        "name": "combo_moins35",
+        "description": "Peu de buts attendus + Plus de 3,5 improbable => Moins de 3,5",
+        "bets": ["OU35_UNDER"],
+        "conditions": [["exp_total_goals", "<=", 2.4], ["p_over35", "<=", 0.25]],
+        "min_edge": null,
+        "min_odd": 1.10,
+        "max_odd": 2.50,
+        "staking": { "method": "flat", "units": 1.0 },
+        "grid": { "conditions.0": [2.2, 2.4, 2.6], "conditions.1": [0.20, 0.25, 0.30], "min_edge": [null, 0.0, 0.03] }
+      },
+      {
+        "name": "combo_plus15",
+        "description": "Beaucoup de buts attendus + Plus de 1,5 très probable => Plus de 1,5",
+        "bets": ["OU15_OVER"],
+        "conditions": [["exp_total_goals", ">=", 3.0], ["p_over15", ">=", 0.82]],
+        "min_edge": null,
+        "min_odd": 1.10,
+        "max_odd": 2.00,
+        "staking": { "method": "flat", "units": 1.0 },
+        "grid": { "conditions.0": [2.8, 3.0, 3.2], "conditions.1": [0.78, 0.82, 0.86], "min_edge": [null, 0.0, 0.03] }
+      }
+    ],
+    "_aide_live": "Paris fictifs du 8 novembre 2026, seuils FIGÉS (ne pas les retoucher en cours de saison). Suivi : sim.vw_PaperBets et sim.vw_PaperSummary (SQL/5_Analytique/A7). Bilan prévu en fin de saison 2026-27.",
+    "live_strategies": [
+      {
+        "name": "papier_seriea_ext_favori",
+        "description": "Serie A : l'équipe extérieure est favorite selon la cote (P marché >= 0,40) => victoire extérieure",
+        "leagues": ["Serie A"],
+        "bets": ["1X2_AWAY"],
+        "conditions": [["mkt_p_away", ">=", 0.40]],
+        "min_edge": null,
+        "staking": { "method": "flat", "units": 1.0 }
+      },
+      {
+        "name": "papier_laliga_dom_favori",
+        "description": "LaLiga : l'équipe à domicile est nettement favorite selon la cote (P marché >= 0,60) => victoire domicile",
+        "leagues": ["LaLiga"],
+        "bets": ["1X2_HOME"],
+        "conditions": [["mkt_p_home", ">=", 0.60]],
+        "min_edge": null,
+        "staking": { "method": "flat", "units": 1.0 }
+      },
+      {
+        "name": "papier_ligue1_value_kelly",
+        "description": "Ligue 1 : pari de valeur 1X2 / DNB, edge >= 5 %, quart de Kelly plafonné à 3 % (copie figée de value_1x2_kelly)",
+        "leagues": ["Ligue 1"],
+        "bets": ["1X2_HOME", "1X2_DRAW", "1X2_AWAY", "DNB_HOME", "DNB_AWAY"],
+        "conditions": [],
+        "min_edge": 0.05,
+        "min_odd": 1.40,
+        "max_odd": 6.00,
+        "one_bet_per_match": true,
+        "staking": { "method": "kelly", "fraction": 0.25, "max_pct": 0.03 }
+      }
+    ]
+  },
+
+  "scan": {
+    "min_matches": 40,
+    "by_league": true,
+    "include_all_leagues": false,
+    "signals": {
+      "exp_total_goals": {"from": 1.8, "to": 3.6, "step": 0.1},
+      "exp_home_goals":  {"from": 0.8, "to": 2.4, "step": 0.1},
+      "exp_away_goals":  {"from": 0.6, "to": 2.0, "step": 0.1},
+      "p_home":          {"from": 0.25, "to": 0.80, "step": 0.05},
+      "p_draw":          {"from": 0.20, "to": 0.36, "step": 0.02},
+      "p_away":          {"from": 0.15, "to": 0.70, "step": 0.05},
+      "p_btts_yes":      {"from": 0.35, "to": 0.75, "step": 0.05},
+      "p_over25":        {"from": 0.30, "to": 0.80, "step": 0.05},
+      "p_over15":        {"from": 0.55, "to": 0.90, "step": 0.05},
+      "p_over35":        {"from": 0.15, "to": 0.50, "step": 0.05}
+    },
+    "_aide_candidates": "Filtres durs du balayage (chapitre 8.3) : paris minimum par saison, taux de fausses découvertes accepté (Benjamini-Hochberg), saisons toutes positives, seuils voisins positifs, CLV.",
+    "candidates": { "min_season_bets": 15, "fdr": 0.10, "require_all_seasons": true, "require_neighbours": true, "require_clv": false },
+    "_aide_raw_signals": "Variables BRUTES (avant tout modèle) balayées de la même façon, pour contrôle : si une seule d'entre elles gagnait, le marché la négligerait. mkt_p_* = probabilité du marché seule : si « cote domicile basse en LaLiga » gagne autant que la règle du modèle, l'effet vient du prix du bookmaker, pas du modèle.",
+    "raw_signals": {
+      "mkt_p_home":         {"from": 0.30, "to": 0.85, "step": 0.05},
+      "mkt_p_away":         {"from": 0.20, "to": 0.70, "step": 0.05},
+      "mkt_p_over25":       {"from": 0.35, "to": 0.70, "step": 0.05},
+      "mkt_p_over15":       {"from": 0.60, "to": 0.90, "step": 0.05},
+      "mkt_p_over35":       {"from": 0.15, "to": 0.50, "step": 0.05},
+      "mkt_p_btts":         {"from": 0.40, "to": 0.65, "step": 0.05},
+      "diff_elo":           {"from": -300, "to": 300, "step": 25},
+      "elo_exp_home":       {"from": 0.30, "to": 0.85, "step": 0.05},
+      "diff_xgd_10":        {"from": -1.5, "to": 1.5, "step": 0.1},
+      "diff_all_pts_10":    {"from": -1.5, "to": 1.5, "step": 0.1},
+      "diff_ssn_avg_xpts":  {"from": -1.2, "to": 1.2, "step": 0.1},
+      "diff_rank_pts":      {"from": -15, "to": 15, "step": 1},
+      "diff_rest_days":     {"from": -4, "to": 4, "step": 1},
+      "h2h_pts":            {"from": 0.0, "to": 3.0, "step": 0.25},
+      "h2h_goals":          {"from": 1.0, "to": 4.5, "step": 0.25}
+    }
+  },
+
+  "bias": {
+    "_aide": "Carte des biais de prix (commande biais) : tranches de cote, paris minimum par case et par saison. DOCUMENTATION.md, chapitre 8.7.",
+    "bands": [1.01, 1.25, 1.40, 1.55, 1.70, 1.85, 2.00, 2.25, 2.60, 3.00, 3.60, 4.50, 6.00, 51.0],
+    "min_bets": 50,
+    "min_season_bets": 10
+  },
+
+  "live": {
+    "days_ahead": 4,
+    "models_dir": "models"
+  }
+}

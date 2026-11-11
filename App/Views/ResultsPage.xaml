@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Onglet « Résultats » : précision des prédictions et derniers matchs prédits. -->
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:Juniro.App.ViewModels"
+             xmlns:m="clr-namespace:Juniro.App.Models"
+             xmlns:c="clr-namespace:Juniro.App.Controls"
+             x:Class="Juniro.App.Views.ResultsPage"
+             x:DataType="vm:ResultsViewModel"
+             Title="Résultats des prédictions">
+
+    <RefreshView IsRefreshing="{Binding IsRefreshing}" Command="{Binding RefreshCommand}">
+        <CollectionView ItemsSource="{Binding Results}" SelectionMode="Single" SelectedItem="{Binding SelectedResult}">
+
+            <CollectionView.Header>
+                <VerticalStackLayout Padding="16,10,16,6" Spacing="12">
+                    <ScrollView Orientation="Horizontal" HorizontalScrollBarVisibility="Never">
+                        <HorizontalStackLayout Spacing="8"
+                                               BindableLayout.ItemsSource="{Binding Periods}"
+                                               BindableLayout.ItemTemplate="{StaticResource ChipTemplate}" />
+                    </ScrollView>
+                    <Picker Title="Ligue" ItemsSource="{Binding Leagues}" SelectedItem="{Binding SelectedLeague}" />
+                    <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" />
+                    <Label Text="{Binding Error}" Style="{StaticResource Error}" IsVisible="{Binding HasError}" />
+
+                    <!-- Indicateurs -->
+                    <Border Style="{StaticResource Card}" IsVisible="{Binding HasKpi}">
+                        <VerticalStackLayout Spacing="12">
+                            <Grid ColumnDefinitions="*,Auto">
+                                <Label Text="Précision" Style="{StaticResource H2}" Margin="0" />
+                                <Label Grid.Column="1" Text="{Binding Kpi.MatchesText}" Style="{StaticResource Muted}" VerticalOptions="Center" />
+                            </Grid>
+                            <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="10" RowSpacing="10">
+                                <Border Style="{StaticResource Tile}">
+                                    <VerticalStackLayout>
+                                        <Label Text="1X2 BIEN PRÉVU" Style="{StaticResource Caption}" />
+                                        <Label Text="{Binding Kpi.Pct1x2Text}" Style="{StaticResource BigNumber}" />
+                                    </VerticalStackLayout>
+                                </Border>
+                                <Border Grid.Column="1" Style="{StaticResource Tile}">
+                                    <VerticalStackLayout>
+                                        <Label Text="SCORE EXACT" Style="{StaticResource Caption}" />
+                                        <Label Text="{Binding Kpi.PctScoreText}" Style="{StaticResource BigNumber}" />
+                                    </VerticalStackLayout>
+                                </Border>
+                                <Border Grid.Row="1" Style="{StaticResource Tile}">
+                                    <VerticalStackLayout>
+                                        <Label Text="BTTS BIEN PRÉVU" Style="{StaticResource Caption}" />
+                                        <Label Text="{Binding Kpi.PctBttsText}" Style="{StaticResource BigNumber}" />
+                                    </VerticalStackLayout>
+                                </Border>
+                                <Border Grid.Row="1" Grid.Column="1" Style="{StaticResource Tile}">
+                                    <VerticalStackLayout>
+                                        <Label Text="±2,5 BUTS BIEN PRÉVU" Style="{StaticResource Caption}" />
+                                        <Label Text="{Binding Kpi.PctOverText}" Style="{StaticResource BigNumber}" />
+                                    </VerticalStackLayout>
+                                </Border>
+                                <Border Grid.Row="2" Style="{StaticResource Tile}">
+                                    <VerticalStackLayout>
+                                        <Label Text="±1,5 BUT BIEN PRÉVU" Style="{StaticResource Caption}" />
+                                        <Label Text="{Binding Kpi.PctOver15Text}" Style="{StaticResource BigNumber}" />
+                                    </VerticalStackLayout>
+                                </Border>
+                                <Border Grid.Row="2" Grid.Column="1" Style="{StaticResource Tile}">
+                                    <VerticalStackLayout>
+                                        <Label Text="±3,5 BUTS BIEN PRÉVU" Style="{StaticResource Caption}" />
+                                        <Label Text="{Binding Kpi.PctOver35Text}" Style="{StaticResource BigNumber}" />
+                                    </VerticalStackLayout>
+                                </Border>
+                            </Grid>
+                            <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="6">
+                                <Label Text="Buts attendus / réels par match" Style="{StaticResource Muted}" />
+                                <Label Grid.Column="1" Text="{Binding Kpi.GoalsText}" FontAttributes="Bold" />
+                                <Label Grid.Row="1" Text="Perte log 1X2 modèle / marché" Style="{StaticResource Muted}" />
+                                <Label Grid.Row="1" Grid.Column="1" Text="{Binding Kpi.LoglossText}" FontAttributes="Bold" />
+                                <Label Grid.Row="2" Grid.ColumnSpan="2" Text="{Binding Kpi.VsMarketText}"
+                                       TextColor="{Binding Kpi.VsMarketColor}" FontAttributes="Bold" />
+                                <Label Grid.Row="3" Text="Perte log ±1,5 modèle / marché" Style="{StaticResource Muted}" />
+                                <Label Grid.Row="3" Grid.Column="1" Text="{Binding Kpi.LlOver15Text}" TextColor="{Binding Kpi.LlOver15Color}" FontAttributes="Bold" />
+                                <Label Grid.Row="4" Text="Perte log ±2,5 modèle / marché" Style="{StaticResource Muted}" />
+                                <Label Grid.Row="4" Grid.Column="1" Text="{Binding Kpi.LlOver25Text}" TextColor="{Binding Kpi.LlOver25Color}" FontAttributes="Bold" />
+                                <Label Grid.Row="5" Text="Perte log ±3,5 modèle / marché" Style="{StaticResource Muted}" />
+                                <Label Grid.Row="5" Grid.Column="1" Text="{Binding Kpi.LlOver35Text}" TextColor="{Binding Kpi.LlOver35Color}" FontAttributes="Bold" />
+                            </Grid>
+                            <Label Style="{StaticResource Caption}"
+                                   Text="Perte logarithmique : plus elle est basse, meilleure est la prédiction. Battre le marché est la condition pour gagner." />
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <!-- Par ligue -->
+                    <Border Style="{StaticResource Card}">
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="Par ligue" Style="{StaticResource H2}" Margin="0,0,0,4" />
+                            <Grid ColumnDefinitions="*,52,52,92">
+                                <Label Text="LIGUE" Style="{StaticResource Caption}" />
+                                <Label Grid.Column="1" Text="MATCHS" Style="{StaticResource Caption}" HorizontalTextAlignment="End" />
+                                <Label Grid.Column="2" Text="1X2" Style="{StaticResource Caption}" HorizontalTextAlignment="End" />
+                                <Label Grid.Column="3" Text="VS MARCHÉ" Style="{StaticResource Caption}" HorizontalTextAlignment="End" />
+                            </Grid>
+                            <VerticalStackLayout BindableLayout.ItemsSource="{Binding LeagueKpis}">
+                                <BindableLayout.ItemTemplate>
+                                    <DataTemplate x:DataType="m:PredictionKpi">
+                                        <Grid ColumnDefinitions="*,52,52,92" Padding="0,6">
+                                            <Label Text="{Binding League}" FontSize="12.5" LineBreakMode="WordWrap" />
+                                            <Label Grid.Column="1" Text="{Binding Matches}" FontSize="13" HorizontalTextAlignment="End" />
+                                            <Label Grid.Column="2" Text="{Binding Pct1x2Text}" FontSize="13" HorizontalTextAlignment="End" />
+                                            <Label Grid.Column="3" Text="{Binding LoglossModel, StringFormat='{0:F3}'}" FontSize="13"
+                                                   TextColor="{Binding VsMarketColor}" HorizontalTextAlignment="End" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </BindableLayout.ItemTemplate>
+                            </VerticalStackLayout>
+                            <Label Style="{StaticResource Caption}" Text="Vert : modèle meilleur que le marché ; orange : marché meilleur." />
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <Label Text="Derniers matchs prédits" Style="{StaticResource H2}" />
+                </VerticalStackLayout>
+            </CollectionView.Header>
+
+            <CollectionView.EmptyView>
+                <Label Text="Aucun match terminé sur cette période." Style="{StaticResource Muted}"
+                       HorizontalTextAlignment="Center" Margin="24" />
+            </CollectionView.EmptyView>
+
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="m:PredictionResult">
+                    <Border Style="{StaticResource Card}" Margin="16,4" Padding="12">
+                        <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="6" ColumnSpacing="10">
+                            <Label Text="{Binding League}" Style="{StaticResource Muted}" />
+                            <Label Grid.Column="1" Text="{Binding KickoffText}" Style="{StaticResource Muted}" />
+                            <Label Grid.Row="1" FontSize="13.5" FontFamily="InterSemiBold" LineBreakMode="WordWrap">
+                                <Label.FormattedText>
+                                    <FormattedString>
+                                        <Span Text="{Binding HomeTeam}" />
+                                        <Span Text="  " />
+                                        <Span Text="{Binding ScoreText}" TextColor="{StaticResource Accent}" />
+                                        <Span Text="  " />
+                                        <Span Text="{Binding AwayTeam}" />
+                                    </FormattedString>
+                                </Label.FormattedText>
+                            </Label>
+                            <Border Grid.Row="1" Grid.Column="1" Style="{StaticResource Pill}" BackgroundColor="{StaticResource CardAlt}">
+                                <Label FontSize="13" FontAttributes="Bold" TextColor="{Binding Color1x2}">
+                                    <Label.FormattedText>
+                                        <FormattedString>
+                                            <Span Text="Prévu " />
+                                            <Span Text="{Binding PredictedText}" />
+                                            <Span Text="  " />
+                                            <Span Text="{Binding Mark1x2}" />
+                                        </FormattedString>
+                                    </Label.FormattedText>
+                                </Label>
+                            </Border>
+                            <c:ProbabilityBar Grid.Row="2" Grid.ColumnSpan="2" Home="{Binding BarHome}" Draw="{Binding BarDraw}" Away="{Binding BarAway}" BarHeight="6" />
+                            <Grid Grid.Row="3" Grid.ColumnSpan="2" ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
+                                <Label Text="{Binding GoalsText}" Style="{StaticResource Muted}" />
+                                <Label Grid.Column="1" Text="{Binding MarkBtts}" FontSize="12" TextColor="{Binding ColorBtts}" />
+                                <Label Grid.Column="2" Text="{Binding MarkOver}" FontSize="12" TextColor="{Binding ColorOver}" />
+                            </Grid>
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </RefreshView>
+</ContentPage>

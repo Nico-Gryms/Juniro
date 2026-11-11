@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Journal du service : état du dernier scrap et de la dernière copie, exécutions récentes. -->
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:Juniro.App.ViewModels"
+             xmlns:m="clr-namespace:Juniro.App.Models"
+             x:Class="Juniro.App.Views.LogsPage"
+             x:DataType="vm:LogsViewModel"
+             Title="Journal du service">
+
+    <RefreshView IsRefreshing="{Binding IsRefreshing}" Command="{Binding RefreshCommand}">
+        <CollectionView ItemsSource="{Binding Runs}" SelectionMode="Single" SelectedItem="{Binding SelectedRun}">
+
+            <CollectionView.Header>
+                <VerticalStackLayout Padding="16,8,16,6" Spacing="12">
+
+                    <!-- État général -->
+                    <Border Style="{StaticResource Card}" BackgroundColor="{Binding Health.Background}" Stroke="{Binding Health.Stroke}">
+                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                            <BoxView WidthRequest="12" HeightRequest="12" CornerRadius="6" Color="{Binding Health.DotColor}" VerticalOptions="Start" Margin="0,4,0,0" />
+                            <VerticalStackLayout Grid.Column="1" Spacing="4">
+                                <Label Text="{Binding Health.Text}" Style="{StaticResource H3}" TextColor="{Binding Health.DotColor}" />
+                                <Label Text="{Binding Health.Detail}" Style="{StaticResource Muted}" />
+                            </VerticalStackLayout>
+                        </Grid>
+                    </Border>
+
+                    <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" />
+                    <Label Text="{Binding Error}" Style="{StaticResource Error}" IsVisible="{Binding HasError}" />
+                    <Label IsVisible="{Binding JournalMissing}" Style="{StaticResource Muted}"
+                           Text="Le journal du scrap n'est pas encore dans Supabase : rejouer A8_ExportSupabase.sql sur le PC fixe et mettre à jour le service. En attendant, seules les copies sont listées." />
+
+                    <!-- Dernier scrap quotidien -->
+                    <Border Style="{StaticResource Card}" IsVisible="{Binding HasLastScrape}">
+                        <VerticalStackLayout Spacing="8">
+                            <Grid ColumnDefinitions="*,Auto">
+                                <Label Text="Dernier scrap quotidien" Style="{StaticResource H3}" VerticalOptions="Center" />
+                                <Border Grid.Column="1" Style="{StaticResource Pill}" BackgroundColor="{Binding LastScrape.StatusBackground}">
+                                    <Label Text="{Binding LastScrape.StatusText}" Style="{StaticResource PillText}" TextColor="{Binding LastScrape.StatusColor}" />
+                                </Border>
+                            </Grid>
+                            <Label Style="{StaticResource Muted}">
+                                <Label.FormattedText>
+                                    <FormattedString>
+                                        <Span Text="{Binding LastScrape.DateText}" />
+                                        <Span Text="  ·  durée " />
+                                        <Span Text="{Binding LastScrape.DurationText}" />
+                                    </FormattedString>
+                                </Label.FormattedText>
+                            </Label>
+                            <Label Text="{Binding LastScrape.CountsText}" FontFamily="InterSemiBold" FontSize="12.5" />
+                            <Label Text="{Binding LastScrape.SummaryText}" Style="{StaticResource Muted}" IsVisible="{Binding LastScrape.HasSummary}" />
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <!-- Dernière copie vers Supabase -->
+                    <Border Style="{StaticResource Card}" IsVisible="{Binding HasLastSync}">
+                        <VerticalStackLayout Spacing="8">
+                            <Grid ColumnDefinitions="*,Auto">
+                                <Label Text="Dernière copie vers Supabase" Style="{StaticResource H3}" VerticalOptions="Center" />
+                                <Border Grid.Column="1" Style="{StaticResource Pill}" BackgroundColor="{Binding LastSync.StatusBackground}">
+                                    <Label Text="{Binding LastSync.StatusText}" Style="{StaticResource PillText}" TextColor="{Binding LastSync.StatusColor}" />
+                                </Border>
+                            </Grid>
+                            <Label Style="{StaticResource Muted}">
+                                <Label.FormattedText>
+                                    <FormattedString>
+                                        <Span Text="{Binding LastSync.DateText}" />
+                                        <Span Text="  ·  durée " />
+                                        <Span Text="{Binding LastSync.DurationText}" />
+                                    </FormattedString>
+                                </Label.FormattedText>
+                            </Label>
+                            <Label Text="{Binding LastSync.DetailsText}" Style="{StaticResource Muted}" FontSize="11" />
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <!-- Filtres -->
+                    <Border Style="{StaticResource SegmentBar}">
+                        <FlexLayout Direction="Row" BindableLayout.ItemsSource="{Binding Filters}"
+                                    BindableLayout.ItemTemplate="{StaticResource SegmentTemplate}" />
+                    </Border>
+
+                    <!-- Historique des copies (filtre « Copie ») -->
+                    <Border Style="{StaticResource TableCard}" IsVisible="{Binding ShowSyncs}">
+                        <VerticalStackLayout BindableLayout.ItemsSource="{Binding Syncs}">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate x:DataType="m:SyncInfo">
+                                    <VerticalStackLayout>
+                                        <BoxView HeightRequest="1" />
+                                        <Grid Padding="12,10" ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto" ColumnSpacing="8" RowSpacing="2">
+                                            <Label Text="{Binding DateText}" Style="{StaticResource Strong}" FontSize="12.5" />
+                                            <Label Grid.Column="1" Text="{Binding StatusText}" FontFamily="InterBold" FontSize="11.5" TextColor="{Binding StatusColor}" />
+                                            <Label Grid.Row="1" Grid.ColumnSpan="2" Text="{Binding DetailsText}" Style="{StaticResource Muted}" FontSize="10.5" />
+                                        </Grid>
+                                    </VerticalStackLayout>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <Label Text="Exécutions" Style="{StaticResource H2}" Margin="0,4,0,0" />
+                </VerticalStackLayout>
+            </CollectionView.Header>
+
+            <CollectionView.EmptyView>
+                <Label Text="Aucune exécution pour ce filtre." Style="{StaticResource Muted}" HorizontalTextAlignment="Center" Margin="24" />
+            </CollectionView.EmptyView>
+
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="m:ExecutionRun">
+                    <Grid Padding="16,4">
+                        <Border Style="{StaticResource Card}" Padding="12">
+                            <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto,Auto" ColumnSpacing="8" RowSpacing="3">
+                                <Label Text="{Binding SourceText}" Style="{StaticResource Strong}" />
+                                <Border Grid.Column="1" Style="{StaticResource Pill}" Padding="7,2" BackgroundColor="{Binding StatusBackground}">
+                                    <Label Text="{Binding StatusText}" FontFamily="InterSemiBold" FontSize="11" TextColor="{Binding StatusColor}" />
+                                </Border>
+                                <Label Grid.Row="1" Grid.ColumnSpan="2" Style="{StaticResource Muted}">
+                                    <Label.FormattedText>
+                                        <FormattedString>
+                                            <Span Text="{Binding DateText}" />
+                                            <Span Text="  ·  " />
+                                            <Span Text="{Binding DurationText}" />
+                                        </FormattedString>
+                                    </Label.FormattedText>
+                                </Label>
+                                <Label Grid.Row="2" Grid.ColumnSpan="2" Text="{Binding CountsText}" FontSize="12" TextColor="{StaticResource TextSoft}"
+                                       IsVisible="{Binding HasCounts}" />
+                                <Label Grid.Row="3" Grid.ColumnSpan="2" Text="{Binding SummaryText}" Style="{StaticResource Muted}" FontSize="11"
+                                       MaxLines="3" LineBreakMode="WordWrap" IsVisible="{Binding HasSummary}" />
+                            </Grid>
+                        </Border>
+                    </Grid>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+
+            <CollectionView.Footer>
+                <Label Margin="20,8,20,24" Style="{StaticResource Muted}" FontSize="11"
+                       Text="Copié chaque matin du PC fixe : exécutions des 30 derniers jours, événements des 14 derniers jours. Touchez une exécution pour voir son journal." />
+            </CollectionView.Footer>
+        </CollectionView>
+    </RefreshView>
+</ContentPage>

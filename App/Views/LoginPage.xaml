@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Connexion : reprise automatique de la session, sinon e-mail + mot de passe. -->
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:Juniro.App.ViewModels"
+             x:Class="Juniro.App.Views.LoginPage"
+             x:DataType="vm:LoginViewModel"
+             Shell.NavBarIsVisible="False">
+
+    <Grid RowDefinitions="*,Auto,*" Padding="24">
+        <VerticalStackLayout Grid.Row="1" Spacing="18" MaximumWidthRequest="420">
+
+            <Border WidthRequest="56" HeightRequest="56" StrokeThickness="0" StrokeShape="RoundRectangle 16"
+                    BackgroundColor="{StaticResource Accent}" HorizontalOptions="Start">
+                <Label Text="J" FontFamily="DisplayHeavy" FontSize="30" TextColor="{StaticResource OnAccent}"
+                       HorizontalTextAlignment="Center" VerticalTextAlignment="Center" />
+            </Border>
+            <VerticalStackLayout Spacing="4">
+                <Label Text="Juniro" Style="{StaticResource H1}" FontSize="32" />
+                <Label Text="Prédictions, stratégies et suivi de vos paris." Style="{StaticResource Muted}" FontSize="14" />
+            </VerticalStackLayout>
+
+            <ActivityIndicator IsRunning="{Binding IsRestoring}" IsVisible="{Binding IsRestoring}" HorizontalOptions="Start" />
+
+            <Border Style="{StaticResource Card}" IsVisible="{Binding ShowForm}" Padding="18">
+                <VerticalStackLayout Spacing="12">
+                    <Label Text="E-MAIL" Style="{StaticResource Caption}" />
+                    <Entry Text="{Binding Email}" Keyboard="Email" Placeholder="vous@exemple.fr" />
+                    <Label Text="MOT DE PASSE" Style="{StaticResource Caption}" />
+                    <Entry Text="{Binding Password}" IsPassword="True" Placeholder="••••••••"
+                           ReturnCommand="{Binding SignInCommand}" />
+                    <Label Text="{Binding Error}" Style="{StaticResource Error}" IsVisible="{Binding HasError}" />
+                    <Button Text="Se connecter" Command="{Binding SignInCommand}" IsEnabled="{Binding IsNotBusy}" Margin="0,6,0,0" />
+                    <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" />
+                    <Label Style="{StaticResource Caption}"
+                           Text="Les comptes se créent dans Supabase (Authentication &gt; Users). Il n'y a pas d'inscription depuis l'application." />
+                </VerticalStackLayout>
+            </Border>
+        </VerticalStackLayout>
+    </Grid>
+</ContentPage>

@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Détail d'une stratégie : saison par saison (simulée) ou courbe et liste des paris (fictive). -->
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:Juniro.App.ViewModels"
+             xmlns:m="clr-namespace:Juniro.App.Models"
+             xmlns:c="clr-namespace:Juniro.App.Controls"
+             x:Class="Juniro.App.Views.StrategyDetailPage"
+             x:DataType="vm:StrategyDetailViewModel"
+             Title="{Binding Title}">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="16,12,16,28" Spacing="14">
+            <VerticalStackLayout Spacing="4">
+                <Label Text="{Binding Title}" Style="{StaticResource H1}" FontSize="19" />
+                <Label Text="{Binding Subtitle}" Style="{StaticResource Muted}" />
+            </VerticalStackLayout>
+            <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" />
+            <Label Text="{Binding Error}" Style="{StaticResource Error}" IsVisible="{Binding HasError}" />
+
+            <Border Style="{StaticResource Card}">
+                <Label Text="{Binding Summary}" FontSize="14" />
+            </Border>
+
+            <!-- Stratégie simulée : une ligne par saison -->
+            <Border Style="{StaticResource Card}" IsVisible="{Binding IsSimulated}">
+                <VerticalStackLayout Spacing="2">
+                    <Label Text="Saison par saison" Style="{StaticResource H2}" Margin="0,0,0,6" />
+                    <VerticalStackLayout Spacing="0" BindableLayout.ItemsSource="{Binding Seasons}">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="m:StrategyReport">
+                                <VerticalStackLayout>
+                                    <BoxView HeightRequest="1" />
+                                    <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto" Padding="0,8" RowSpacing="4">
+                                        <HorizontalStackLayout Spacing="8">
+                                            <Label Text="{Binding Season}" FontAttributes="Bold" />
+                                            <Label Text="{Binding PeriodText}" Style="{StaticResource Muted}" VerticalOptions="Center" />
+                                        </HorizontalStackLayout>
+                                        <Label Grid.Column="1" Text="{Binding RoiText}" FontAttributes="Bold" TextColor="{Binding RoiColor}" />
+                                        <BoxView Grid.Row="1" Grid.ColumnSpan="2" HeightRequest="6" CornerRadius="3" HorizontalOptions="Start"
+                                                 WidthRequest="{Binding BarWidth}" Color="{Binding RoiColor}" />
+                                        <Label Grid.Row="2" Grid.ColumnSpan="2" Text="{Binding DetailText}" Style="{StaticResource Caption}" />
+                                    </Grid>
+                                </VerticalStackLayout>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </VerticalStackLayout>
+                    <Label Style="{StaticResource Caption}" Margin="0,8,0,0"
+                           Text="« réglage » = saisons où la variante a été choisie (résultat flatteur). « test » = saisons jamais vues lors du choix." />
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Paris fictifs : courbe du ROI et liste -->
+            <Border Style="{StaticResource Card}" IsVisible="{Binding IsPaper}">
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="ROI cumulé" Style="{StaticResource H2}" Margin="0" />
+                    <c:LineChartView Points="{Binding ChartPoints}" Suffix=" %" HeightRequest="220" />
+                </VerticalStackLayout>
+            </Border>
+            <VerticalStackLayout Spacing="8" IsVisible="{Binding IsPaper}" BindableLayout.ItemsSource="{Binding Signals}">
+                <BindableLayout.ItemTemplate>
+                    <DataTemplate x:DataType="m:SignalRow">
+                        <Border Style="{StaticResource Card}" Padding="12">
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer
+                                    Command="{Binding Source={RelativeSource AncestorType={x:Type vm:StrategyDetailViewModel}}, Path=OpenMatchCommand}"
+                                    CommandParameter="{Binding .}" />
+                            </Border.GestureRecognizers>
+                            <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto" RowSpacing="3">
+                                <Label Text="{Binding MatchText}" FontFamily="InterSemiBold" LineBreakMode="WordWrap" />
+                                <Label Grid.Column="1" Text="{Binding ScoreText}" FontAttributes="Bold" TextColor="{StaticResource Accent}" />
+                                <Label Grid.Row="1" Text="{Binding BetText}" FontSize="13" />
+                                <Label Grid.Row="1" Grid.Column="1" Text="{Binding KickoffText}" Style="{StaticResource Muted}" />
+                                <Label Grid.Row="2" Grid.ColumnSpan="2" Text="{Binding ResultText}" FontSize="13"
+                                       FontAttributes="Bold" TextColor="{Binding ResultColor}" />
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </BindableLayout.ItemTemplate>
+            </VerticalStackLayout>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

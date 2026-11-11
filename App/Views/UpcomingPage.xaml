@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--
+  Onglet « Matchs » : bandeau de dates, filtre Tous / Joués / À venir, ligues,
+  puis les matchs de la journée par section (Terminés, Joués, À venir).
+-->
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:Juniro.App.ViewModels"
+             xmlns:m="clr-namespace:Juniro.App.Models"
+             xmlns:c="clr-namespace:Juniro.App.Controls"
+             x:Class="Juniro.App.Views.UpcomingPage"
+             x:DataType="vm:UpcomingViewModel"
+             Shell.NavBarIsVisible="False"
+             Title="Matchs">
+
+    <Grid RowDefinitions="Auto,*">
+
+        <!-- En-tête et filtres -->
+        <VerticalStackLayout Padding="20,14,20,6" Spacing="14">
+            <Grid ColumnDefinitions="Auto,Auto,*,Auto" ColumnSpacing="8">
+                <Border WidthRequest="28" HeightRequest="28" StrokeThickness="0" StrokeShape="RoundRectangle 8"
+                        BackgroundColor="{StaticResource Accent}" VerticalOptions="Center">
+                    <Label Text="J" FontFamily="DisplayHeavy" FontSize="16" TextColor="{StaticResource OnAccent}"
+                           HorizontalTextAlignment="Center" VerticalTextAlignment="Center" />
+                </Border>
+                <Label Grid.Column="1" Text="Juniro" FontFamily="DisplayHeavy" FontSize="18" VerticalOptions="Center" />
+
+                <!-- Indicateur du service : dernier scrap et dernière copie ; toucher = journal -->
+                <Border Grid.Column="2" HorizontalOptions="End" VerticalOptions="Center" Padding="10,6" Margin="6,0,0,0"
+                        StrokeThickness="1" Stroke="{Binding Health.Stroke}" StrokeShape="RoundRectangle 15"
+                        BackgroundColor="{Binding Health.Background}">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding OpenLogsCommand}" />
+                    </Border.GestureRecognizers>
+                    <HorizontalStackLayout Spacing="6">
+                        <BoxView WidthRequest="8" HeightRequest="8" CornerRadius="4" Color="{Binding Health.DotColor}" VerticalOptions="Center" />
+                        <Label Text="{Binding Health.Text}" FontFamily="InterSemiBold" FontSize="11.5"
+                               TextColor="{Binding Health.DotColor}" VerticalOptions="Center" />
+                        <Image Source="icon_chevron.png" WidthRequest="10" HeightRequest="10" Opacity="0.6" VerticalOptions="Center" />
+                    </HorizontalStackLayout>
+                </Border>
+
+                <ImageButton Grid.Column="3" Source="icon_refresh.png" Style="{StaticResource IconButton}"
+                             Command="{Binding RefreshCommand}" SemanticProperties.Description="Actualiser" />
+            </Grid>
+
+            <VerticalStackLayout Spacing="2">
+                <Label Text="Matchs" Style="{StaticResource H1}" />
+                <Label Text="{Binding DayTitle}" Style="{StaticResource Muted}" FontSize="12" />
+            </VerticalStackLayout>
+
+            <!-- Bandeau de dates -->
+            <ScrollView Orientation="Horizontal" HorizontalScrollBarVisibility="Never">
+                <HorizontalStackLayout Spacing="8" BindableLayout.ItemsSource="{Binding Days}">
+                    <BindableLayout.ItemTemplate>
+                        <DataTemplate x:DataType="m:DayChip">
+                            <Border WidthRequest="46" HeightRequest="54" StrokeThickness="1" Stroke="{Binding Stroke}"
+                                    StrokeShape="RoundRectangle 14" BackgroundColor="{Binding Background}" Padding="0">
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding Command}" CommandParameter="{Binding Date}" />
+                                </Border.GestureRecognizers>
+                                <VerticalStackLayout VerticalOptions="Center" Spacing="1">
+                                    <Label Text="{Binding DayName}" FontFamily="InterSemiBold" FontSize="10.5"
+                                           TextColor="{Binding Foreground}" HorizontalTextAlignment="Center" />
+                                    <Label Text="{Binding DayNumber}" FontFamily="DisplayHeavy" FontSize="16"
+                                           TextColor="{Binding Foreground}" HorizontalTextAlignment="Center" />
+                                </VerticalStackLayout>
+                            </Border>
+                        </DataTemplate>
+                    </BindableLayout.ItemTemplate>
+                </HorizontalStackLayout>
+            </ScrollView>
+
+            <!-- Tous / Joués / À venir -->
+            <Border Style="{StaticResource SegmentBar}">
+                <FlexLayout Direction="Row" BindableLayout.ItemsSource="{Binding Statuses}"
+                            BindableLayout.ItemTemplate="{StaticResource SegmentTemplate}" />
+            </Border>
+
+            <!-- Ligues et paris proposés -->
+            <ScrollView Orientation="Horizontal" HorizontalScrollBarVisibility="Never">
+                <HorizontalStackLayout Spacing="8" BindableLayout.ItemsSource="{Binding LeagueChips}"
+                                       BindableLayout.ItemTemplate="{StaticResource ChipTemplate}" />
+            </ScrollView>
+
+            <Label Text="{Binding Error}" Style="{StaticResource Error}" IsVisible="{Binding HasError}" />
+        </VerticalStackLayout>
+
+        <!-- Matchs de la journée -->
+        <RefreshView Grid.Row="1" IsRefreshing="{Binding IsRefreshing}" Command="{Binding RefreshCommand}">
+            <CollectionView ItemsSource="{Binding Sections}" IsGrouped="True"
+                            SelectionMode="Single" SelectedItem="{Binding SelectedMatch}">
+
+                <CollectionView.EmptyView>
+                    <VerticalStackLayout Padding="32" Spacing="8" HorizontalOptions="Center" VerticalOptions="Center">
+                        <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" />
+                        <Label Text="{Binding EmptyText}" HorizontalTextAlignment="Center" />
+                        <Label Text="Choisissez un autre jour ou tirez vers le bas pour actualiser."
+                               Style="{StaticResource Muted}" HorizontalTextAlignment="Center" />
+                    </VerticalStackLayout>
+                </CollectionView.EmptyView>
+
+                <CollectionView.GroupHeaderTemplate>
+                    <DataTemplate x:DataType="m:MatchSection">
+                        <Grid Padding="20,16,20,6" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8">
+                            <BoxView WidthRequest="6" HeightRequest="6" CornerRadius="3" Color="{Binding DotColor}" VerticalOptions="Center" />
+                            <Label Grid.Column="1" Text="{Binding Title}" Style="{StaticResource Overline}" TextColor="{Binding DotColor}"
+                                   VerticalOptions="Center" />
+                            <Label Grid.Column="2" Text="{Binding Subtitle}" Style="{StaticResource Muted}" VerticalOptions="Center" />
+                        </Grid>
+                    </DataTemplate>
+                </CollectionView.GroupHeaderTemplate>
+
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="m:MatchItem">
+                        <Grid Padding="16,5">
+                            <Border Style="{StaticResource Card}">
+                                <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto" RowSpacing="11">
+
+                                    <!-- Ligue et heure / état -->
+                                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="7">
+                                        <BoxView WidthRequest="8" HeightRequest="8" CornerRadius="2" Color="{Binding LeagueColor}" VerticalOptions="Center" />
+                                        <Label Grid.Column="1" Text="{Binding LeagueText}" Style="{StaticResource Caption}" VerticalOptions="Center" />
+                                        <Label Grid.Column="2" Text="{Binding StateText}" FontFamily="InterSemiBold" FontSize="12"
+                                               TextColor="{Binding StateColor}" VerticalOptions="Center" />
+                                    </Grid>
+
+                                    <!-- Équipes -->
+                                    <Grid Grid.Row="1" ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto" ColumnSpacing="10" RowSpacing="8">
+                                        <Border Style="{StaticResource Crest}">
+                                            <Label Text="{Binding HomeShort}" Style="{StaticResource CrestText}" />
+                                        </Border>
+                                        <Label Grid.Column="1" Text="{Binding HomeTeam}" Style="{StaticResource Strong}" FontSize="14"
+                                               VerticalOptions="Center" LineBreakMode="WordWrap" />
+                                        <Label Grid.Column="2" Text="{Binding HomeInfo}" Style="{StaticResource Muted}" VerticalOptions="Center"
+                                               IsVisible="{Binding ShowTeamInfo}" />
+                                        <Label Grid.Column="2" Text="{Binding HomeGoalsText}" FontFamily="DisplayHeavy" FontSize="18"
+                                               VerticalOptions="Center" IsVisible="{Binding IsFinished}" />
+
+                                        <Border Grid.Row="1" Style="{StaticResource Crest}">
+                                            <Label Text="{Binding AwayShort}" Style="{StaticResource CrestText}" />
+                                        </Border>
+                                        <Label Grid.Row="1" Grid.Column="1" Text="{Binding AwayTeam}" Style="{StaticResource Strong}" FontSize="14"
+                                               VerticalOptions="Center" LineBreakMode="WordWrap" />
+                                        <Label Grid.Row="1" Grid.Column="2" Text="{Binding AwayInfo}" Style="{StaticResource Muted}" VerticalOptions="Center"
+                                               IsVisible="{Binding ShowTeamInfo}" />
+                                        <Label Grid.Row="1" Grid.Column="2" Text="{Binding AwayGoalsText}" FontFamily="DisplayHeavy" FontSize="18"
+                                               VerticalOptions="Center" IsVisible="{Binding IsFinished}" />
+                                    </Grid>
+
+                                    <!-- Cotes 1 N 2 -->
+                                    <FlexLayout Grid.Row="2" Direction="Row" IsVisible="{Binding HasOdds}" Margin="-3,0"
+                                                BindableLayout.ItemsSource="{Binding Tiles}">
+                                        <BindableLayout.ItemTemplate>
+                                            <DataTemplate x:DataType="m:OddTile">
+                                                <Border FlexLayout.Grow="1" FlexLayout.Basis="0" Margin="3,0" Padding="8,6"
+                                                        StrokeThickness="1" Stroke="{Binding Stroke}" StrokeShape="RoundRectangle 10"
+                                                        BackgroundColor="{Binding Background}">
+                                                    <VerticalStackLayout Spacing="1">
+                                                        <Label Text="{Binding TopText}" FontFamily="InterSemiBold" FontSize="10.5"
+                                                               TextColor="{Binding Foreground}" Opacity="0.8" />
+                                                        <Label Text="{Binding OddText}" FontFamily="DisplayHeavy" FontSize="15"
+                                                               TextColor="{Binding Foreground}" />
+                                                    </VerticalStackLayout>
+                                                </Border>
+                                            </DataTemplate>
+                                        </BindableLayout.ItemTemplate>
+                                    </FlexLayout>
+
+                                    <!-- Probabilités du modèle -->
+                                    <c:ProbabilityBar Grid.Row="3" Home="{Binding BarHome}" Draw="{Binding BarDraw}" Away="{Binding BarAway}"
+                                                      BarHeight="6" IsVisible="{Binding HasPrediction}" />
+
+                                    <!-- Pastilles : pronostic, valeur, indice, stratégies -->
+                                    <FlexLayout Grid.Row="4" Direction="Row" Wrap="Wrap" AlignItems="Start" Margin="-3,-3">
+                                        <Border Style="{StaticResource Pill}" Margin="3" BackgroundColor="{Binding PronoBackground}"
+                                                IsVisible="{Binding IsOver}">
+                                            <HorizontalStackLayout Spacing="6">
+                                                <Label Text="{Binding PronoText}" Style="{StaticResource PillText}" TextColor="{Binding PronoColor}" />
+                                                <Label Text="{Binding PronoMark}" Style="{StaticResource PillText}" TextColor="{Binding PronoColor}" />
+                                            </HorizontalStackLayout>
+                                        </Border>
+                                        <Border Style="{StaticResource Pill}" Margin="3" BackgroundColor="{StaticResource AccentSoft}"
+                                                IsVisible="{Binding HasValue}">
+                                            <Label Text="{Binding ValueText}" Style="{StaticResource PillText}" TextColor="{StaticResource Accent}" />
+                                        </Border>
+                                        <Border Style="{StaticResource Pill}" Margin="3" BackgroundColor="{StaticResource CardAlt}"
+                                                IsVisible="{Binding HasIndex}">
+                                            <Label Text="{Binding IndexText}" Style="{StaticResource PillText}" TextColor="{Binding IndexColor}" />
+                                        </Border>
+                                        <Border Style="{StaticResource Pill}" Margin="3" BackgroundColor="{StaticResource CardAlt}"
+                                                IsVisible="{Binding HasSignals}">
+                                            <Label Text="{Binding SignalsText}" Style="{StaticResource PillText}" TextColor="{StaticResource TextMuted}" />
+                                        </Border>
+                                    </FlexLayout>
+                                </Grid>
+                            </Border>
+                        </Grid>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+
+                <CollectionView.Footer>
+                    <BoxView HeightRequest="24" Color="Transparent" />
+                </CollectionView.Footer>
+            </CollectionView>
+        </RefreshView>
+    </Grid>
+</ContentPage>

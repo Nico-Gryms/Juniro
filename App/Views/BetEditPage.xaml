@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Saisie / modification d'un pari réellement joué. -->
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:Juniro.App.ViewModels"
+             x:Class="Juniro.App.Views.BetEditPage"
+             x:DataType="vm:BetEditViewModel"
+             Title="{Binding Title}">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="16,12,16,28" Spacing="12" MaximumWidthRequest="640">
+            <Label Text="{Binding MatchText}" Style="{StaticResource Muted}" FontSize="14" />
+            <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" />
+
+            <Border Style="{StaticResource Card}">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="PARI JOUÉ" Style="{StaticResource Caption}" />
+                    <!-- Texte affiché pour chaque pari : SelectionRow.ToString() -->
+                    <Picker Title="Choisir le pari" ItemsSource="{Binding SelectionOptions}"
+                            SelectedItem="{Binding Selection}" IsEnabled="{Binding CanEdit}" />
+
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                        <VerticalStackLayout Spacing="6">
+                            <Label Text="COTE" Style="{StaticResource Caption}" />
+                            <Entry Text="{Binding OddText}" Keyboard="Numeric" Placeholder="1,85" IsEnabled="{Binding CanEdit}" />
+                        </VerticalStackLayout>
+                        <VerticalStackLayout Grid.Column="1" Spacing="6">
+                            <Label Text="MISE" Style="{StaticResource Caption}" />
+                            <Entry Text="{Binding StakeText}" Keyboard="Numeric" Placeholder="10" IsEnabled="{Binding CanEdit}" />
+                        </VerticalStackLayout>
+                    </Grid>
+                    <Label Text="{Binding HintText}" FontSize="13" TextColor="{StaticResource Accent}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <Border Style="{StaticResource Card}">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="STRATÉGIE SUIVIE" Style="{StaticResource Caption}" />
+                    <Picker Title="Stratégie" ItemsSource="{Binding StrategyOptions}" SelectedItem="{Binding SelectedStrategy}" IsEnabled="{Binding CanEdit}" />
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                        <VerticalStackLayout Spacing="6">
+                            <Label Text="BOOKMAKER" Style="{StaticResource Caption}" />
+                            <Entry Text="{Binding Bookmaker}" Placeholder="Betclic" IsEnabled="{Binding CanEdit}" />
+                        </VerticalStackLayout>
+                        <VerticalStackLayout Grid.Column="1" Spacing="6">
+                            <Label Text="JOUÉ LE" Style="{StaticResource Caption}" />
+                            <DatePicker Date="{Binding PlacedDate}" Format="dd/MM/yyyy" IsEnabled="{Binding CanEdit}" />
+                        </VerticalStackLayout>
+                    </Grid>
+                    <Label Text="NOTE" Style="{StaticResource Caption}" />
+                    <Editor Text="{Binding Note}" Placeholder="Combiné, bonus, cash-out..." AutoSize="TextChanges" IsEnabled="{Binding CanEdit}" />
+                    <Grid ColumnDefinitions="*,Auto" IsVisible="{Binding IsEdit}">
+                        <VerticalStackLayout>
+                            <Label Text="Pari annulé / remboursé" />
+                            <Label Text="Le bookmaker a annulé le pari : il compte pour zéro." Style="{StaticResource Caption}" />
+                        </VerticalStackLayout>
+                        <Switch Grid.Column="1" IsToggled="{Binding IsVoid}" IsEnabled="{Binding CanEdit}" />
+                    </Grid>
+                </VerticalStackLayout>
+            </Border>
+
+            <Label Text="{Binding Error}" Style="{StaticResource Error}" IsVisible="{Binding HasError}" />
+            <Button Text="Enregistrer" Command="{Binding SaveCommand}" IsVisible="{Binding CanEdit}" />
+            <Button Text="Supprimer ce pari" Style="{StaticResource DangerButton}" Command="{Binding DeleteCommand}" IsVisible="{Binding CanDelete}" />
+            <Label Style="{StaticResource Caption}"
+                   Text="Le résultat (gagné, perdu, remboursé) se calcule tout seul quand le score du match arrive." />
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--
+  Onglet « Classements » : classement de chaque ligue (général, domicile, extérieur,
+  5 derniers matchs) et classement Elo filtrable (pays, division, recherche, tri).
+-->
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:Juniro.App.ViewModels"
+             xmlns:m="clr-namespace:Juniro.App.Models"
+             xmlns:c="clr-namespace:Juniro.App.Controls"
+             x:Class="Juniro.App.Views.StandingsPage"
+             x:DataType="vm:StandingsViewModel"
+             Shell.NavBarIsVisible="False"
+             Title="Classements">
+
+    <Grid RowDefinitions="Auto,*">
+
+        <!-- Titre et choix Ligues / Elo -->
+        <Grid Padding="20,18,20,8" ColumnDefinitions="*,150" ColumnSpacing="10">
+            <Label Text="Classements" Style="{StaticResource H1}" VerticalOptions="Center" />
+            <Border Grid.Column="1" Style="{StaticResource SegmentBar}" Padding="3" VerticalOptions="Center">
+                <FlexLayout Direction="Row" BindableLayout.ItemsSource="{Binding Views}"
+                            BindableLayout.ItemTemplate="{StaticResource SegmentTemplate}" />
+            </Border>
+        </Grid>
+
+        <!-- ============================== LIGUES ============================== -->
+        <RefreshView Grid.Row="1" IsVisible="{Binding IsLeaguesView}" IsRefreshing="{Binding IsRefreshing}" Command="{Binding RefreshCommand}">
+            <ScrollView>
+                <VerticalStackLayout Padding="20,4,20,24" Spacing="14">
+                    <ScrollView Orientation="Horizontal" HorizontalScrollBarVisibility="Never">
+                        <HorizontalStackLayout Spacing="8" BindableLayout.ItemsSource="{Binding LeagueChips}"
+                                               BindableLayout.ItemTemplate="{StaticResource ChipTemplate}" />
+                    </ScrollView>
+                    <Border Style="{StaticResource SegmentBar}">
+                        <FlexLayout Direction="Row" BindableLayout.ItemsSource="{Binding Scopes}"
+                                    BindableLayout.ItemTemplate="{StaticResource SegmentTemplate}" />
+                    </Border>
+                    <Label Text="{Binding SeasonText}" Style="{StaticResource Muted}" />
+                    <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" />
+                    <Label Text="{Binding Error}" Style="{StaticResource Error}" IsVisible="{Binding HasError}" />
+
+                    <Border Style="{StaticResource TableCard}">
+                        <VerticalStackLayout>
+                            <Grid Padding="12,10" ColumnDefinitions="26,*,22,30,30,68" ColumnSpacing="4" BackgroundColor="{StaticResource Surface}">
+                                <Label Text="#" Style="{StaticResource Caption}" />
+                                <Label Grid.Column="1" Text="ÉQUIPE" Style="{StaticResource Caption}" />
+                                <Label Grid.Column="2" Text="J" Style="{StaticResource Caption}" HorizontalTextAlignment="End" />
+                                <Label Grid.Column="3" Text="+/-" Style="{StaticResource Caption}" HorizontalTextAlignment="End" />
+                                <Label Grid.Column="4" Text="PTS" Style="{StaticResource Caption}" HorizontalTextAlignment="End" />
+                                <Label Grid.Column="5" Text="FORME" Style="{StaticResource Caption}" HorizontalTextAlignment="End" />
+                            </Grid>
+                            <VerticalStackLayout BindableLayout.ItemsSource="{Binding Rows}">
+                                <BindableLayout.ItemTemplate>
+                                    <DataTemplate x:DataType="m:StandingRow">
+                                        <VerticalStackLayout BackgroundColor="{Binding RowBackground}">
+                                            <BoxView HeightRequest="1" />
+                                            <Grid Padding="10,0" MinimumHeightRequest="42" ColumnDefinitions="26,*,22,30,30,68" ColumnSpacing="4">
+                                                <Border WidthRequest="24" HeightRequest="24" StrokeThickness="0" StrokeShape="RoundRectangle 7"
+                                                        BackgroundColor="{Binding RankBackground}" VerticalOptions="Center" HorizontalOptions="Start">
+                                                    <Label Text="{Binding Rank}" FontFamily="InterBold" FontSize="11" TextColor="{Binding RankForeground}"
+                                                           HorizontalTextAlignment="Center" VerticalTextAlignment="Center" />
+                                                </Border>
+                                                <Label Grid.Column="1" Text="{Binding Team}" Style="{StaticResource Strong}" FontSize="12.5" VerticalOptions="Center"
+                                                       LineBreakMode="WordWrap" Margin="0,4" />
+                                                <Label Grid.Column="2" Text="{Binding Played}" FontSize="12" TextColor="{StaticResource TextMuted}"
+                                                       HorizontalTextAlignment="End" VerticalOptions="Center" />
+                                                <Label Grid.Column="3" Text="{Binding GdText}" FontSize="12" TextColor="{StaticResource TextSoft}"
+                                                       HorizontalTextAlignment="End" VerticalOptions="Center" />
+                                                <Label Grid.Column="4" Text="{Binding Pts}" Style="{StaticResource Number}"
+                                                       HorizontalTextAlignment="End" VerticalOptions="Center" />
+                                                <HorizontalStackLayout Grid.Column="5" Spacing="2" HorizontalOptions="End" VerticalOptions="Center"
+                                                                       BindableLayout.ItemsSource="{Binding FormDots}"
+                                                                       BindableLayout.ItemTemplate="{StaticResource FormDotTemplate}" />
+                                            </Grid>
+                                        </VerticalStackLayout>
+                                    </DataTemplate>
+                                </BindableLayout.ItemTemplate>
+                            </VerticalStackLayout>
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <!-- Légende des zones -->
+                    <FlexLayout Direction="Row" Wrap="Wrap" IsVisible="{Binding HasLegend}" BindableLayout.ItemsSource="{Binding Legend}">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="m:ZoneLegend">
+                                <HorizontalStackLayout Spacing="6" Margin="0,0,14,8">
+                                    <BoxView WidthRequest="10" HeightRequest="10" CornerRadius="3" Color="{Binding Color}" VerticalOptions="Center" />
+                                    <Label Text="{Binding Name}" Style="{StaticResource Muted}" VerticalOptions="Center" />
+                                </HorizontalStackLayout>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </FlexLayout>
+                    <Label Style="{StaticResource Muted}" FontSize="11"
+                           Text="Calculé à partir des matchs terminés de la saison. Forme : 5 derniers matchs, du plus ancien au plus récent." />
+                </VerticalStackLayout>
+            </ScrollView>
+        </RefreshView>
+
+        <!-- ============================== ELO ============================== -->
+        <RefreshView Grid.Row="1" IsVisible="{Binding IsEloView}" IsRefreshing="{Binding IsRefreshing}" Command="{Binding RefreshCommand}">
+            <CollectionView ItemsSource="{Binding EloRows}" SelectionMode="None">
+                <CollectionView.Header>
+                    <VerticalStackLayout Padding="20,4,20,10" Spacing="14">
+                        <Border Style="{StaticResource SegmentBar}" Padding="12,0" HeightRequest="46">
+                            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+                                <Image Source="icon_search.png" WidthRequest="18" HeightRequest="18" Opacity="0.6" VerticalOptions="Center" />
+                                <Entry Grid.Column="1" Text="{Binding Search}" Placeholder="Rechercher une équipe" BackgroundColor="Transparent"
+                                       VerticalOptions="Center" ClearButtonVisibility="WhileEditing" />
+                            </Grid>
+                        </Border>
+                        <VerticalStackLayout Spacing="8">
+                            <Label Text="Pays" Style="{StaticResource Overline}" />
+                            <ScrollView Orientation="Horizontal" HorizontalScrollBarVisibility="Never">
+                                <HorizontalStackLayout Spacing="8" BindableLayout.ItemsSource="{Binding CountryChips}"
+                                                       BindableLayout.ItemTemplate="{StaticResource ChipTemplate}" />
+                            </ScrollView>
+                        </VerticalStackLayout>
+                        <VerticalStackLayout Spacing="12">
+                            <VerticalStackLayout Spacing="8">
+                                <Label Text="Division" Style="{StaticResource Overline}" />
+                                <Border Style="{StaticResource SegmentBar}" Padding="3">
+                                    <FlexLayout Direction="Row" BindableLayout.ItemsSource="{Binding Divisions}"
+                                                BindableLayout.ItemTemplate="{StaticResource SegmentTemplate}" />
+                                </Border>
+                            </VerticalStackLayout>
+                            <VerticalStackLayout Spacing="8">
+                                <Label Text="Trier par" Style="{StaticResource Overline}" />
+                                <Border Style="{StaticResource SegmentBar}" Padding="3">
+                                    <FlexLayout Direction="Row" BindableLayout.ItemsSource="{Binding Sorts}"
+                                                BindableLayout.ItemTemplate="{StaticResource SegmentTemplate}" />
+                                </Border>
+                            </VerticalStackLayout>
+                        </VerticalStackLayout>
+                        <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" />
+                        <Label Text="{Binding Error}" Style="{StaticResource Error}" IsVisible="{Binding HasError}" />
+                        <Grid ColumnDefinitions="*,Auto" Padding="4,0">
+                            <Label Text="{Binding EloCountText}" Style="{StaticResource Caption}" />
+                            <Label Grid.Column="1" Text="TENDANCE 10 MATCHS · ELO" Style="{StaticResource Caption}" />
+                        </Grid>
+                    </VerticalStackLayout>
+                </CollectionView.Header>
+
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="m:EloRow">
+                        <Grid Padding="20,0">
+                            <Border BackgroundColor="{StaticResource Card}" StrokeThickness="0" StrokeShape="RoundRectangle 0" Padding="0">
+                                <Grid Padding="10,6" MinimumHeightRequest="52" ColumnDefinitions="26,*,52,58" ColumnSpacing="8">
+                                    <Label Text="{Binding PositionText}" FontFamily="InterBold" FontSize="12" TextColor="{StaticResource TextMuted}"
+                                           HorizontalTextAlignment="End" VerticalOptions="Center" />
+                                    <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                                        <Label Text="{Binding Team}" Style="{StaticResource Strong}" FontSize="12.5" LineBreakMode="WordWrap" />
+                                        <Label Text="{Binding SubText}" Style="{StaticResource Muted}" FontSize="10.5" LineBreakMode="WordWrap" />
+                                    </VerticalStackLayout>
+                                    <c:Sparkline Grid.Column="2" Values="{Binding Points}" LineColor="{Binding DeltaColor}"
+                                                 HeightRequest="24" VerticalOptions="Center" />
+                                    <VerticalStackLayout Grid.Column="3" Spacing="1" VerticalOptions="Center">
+                                        <Label Text="{Binding EloText}" FontFamily="DisplayHeavy" FontSize="14" HorizontalTextAlignment="End" />
+                                        <Label Text="{Binding DeltaText}" FontFamily="InterBold" FontSize="10.5" TextColor="{Binding DeltaColor}"
+                                               HorizontalTextAlignment="End" />
+                                    </VerticalStackLayout>
+                                    <BoxView Grid.ColumnSpan="4" HeightRequest="1" VerticalOptions="End" />
+                                </Grid>
+                            </Border>
+                        </Grid>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+
+                <CollectionView.Footer>
+                    <Label Margin="20,12,20,28" Style="{StaticResource Muted}" FontSize="11"
+                           Text="Elo avant le dernier match connu de chaque équipe (à jour dès que son prochain match est relevé). Tendance : évolution sur ses 10 derniers matchs." />
+                </CollectionView.Footer>
+            </CollectionView>
+        </RefreshView>
+    </Grid>
+</ContentPage>

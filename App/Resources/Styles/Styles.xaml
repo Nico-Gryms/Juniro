@@ -1,0 +1,241 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+  Styles communs. Styles implicites (sans x:Key) = appliqués à tous les contrôles du type ;
+  styles nommés (x:Key) = à appeler avec Style="{StaticResource Nom}".
+
+  Polices (Resources/Fonts, enregistrées dans MauiProgram.cs) :
+    Inter, InterMedium, InterSemiBold, InterBold  -> textes
+    Display, DisplayHeavy (Inter Display)          -> titres et grands chiffres
+-->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+
+    <!-- ===== Pages ===== -->
+    <Style TargetType="ContentPage" ApplyToDerivedTypes="True">
+        <Setter Property="BackgroundColor" Value="{StaticResource Bg}" />
+        <Setter Property="Padding" Value="0" />
+    </Style>
+
+    <!-- ===== Textes ===== -->
+    <Style TargetType="Label">
+        <Setter Property="TextColor" Value="{StaticResource Text}" />
+        <Setter Property="FontFamily" Value="Inter" />
+        <Setter Property="FontSize" Value="13" />
+    </Style>
+    <!-- Grand titre d'onglet (« Matchs », « Classements ») -->
+    <Style x:Key="H1" TargetType="Label">
+        <Setter Property="FontFamily" Value="DisplayHeavy" />
+        <Setter Property="FontSize" Value="25" />
+        <Setter Property="CharacterSpacing" Value="-0.4" />
+        <Setter Property="TextColor" Value="{StaticResource Text}" />
+    </Style>
+    <!-- Titre de section / de carte -->
+    <Style x:Key="H2" TargetType="Label">
+        <Setter Property="FontFamily" Value="Display" />
+        <Setter Property="FontSize" Value="16" />
+        <Setter Property="TextColor" Value="{StaticResource Text}" />
+        <Setter Property="Margin" Value="0,8,0,4" />
+    </Style>
+    <Style x:Key="H3" TargetType="Label">
+        <Setter Property="FontFamily" Value="Display" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="TextColor" Value="{StaticResource Text}" />
+    </Style>
+    <!-- Texte fort (noms d'équipes, libellés de paris) -->
+    <Style x:Key="Strong" TargetType="Label">
+        <Setter Property="FontFamily" Value="InterSemiBold" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="TextColor" Value="{StaticResource Text}" />
+    </Style>
+    <Style x:Key="Muted" TargetType="Label">
+        <Setter Property="FontFamily" Value="Inter" />
+        <Setter Property="FontSize" Value="11.5" />
+        <Setter Property="TextColor" Value="{StaticResource TextMuted}" />
+    </Style>
+    <!-- Petite étiquette en capitales (« BÉNÉFICE », « À VENIR ») -->
+    <Style x:Key="Caption" TargetType="Label">
+        <Setter Property="FontFamily" Value="InterSemiBold" />
+        <Setter Property="FontSize" Value="10.5" />
+        <Setter Property="TextColor" Value="{StaticResource TextMuted}" />
+        <Setter Property="CharacterSpacing" Value="0.6" />
+    </Style>
+    <Style x:Key="Overline" TargetType="Label">
+        <Setter Property="FontFamily" Value="InterSemiBold" />
+        <Setter Property="FontSize" Value="10.5" />
+        <Setter Property="TextColor" Value="{StaticResource TextMuted}" />
+        <Setter Property="CharacterSpacing" Value="0.9" />
+        <Setter Property="TextTransform" Value="Uppercase" />
+    </Style>
+    <!-- Chiffres : cotes, Elo, points -->
+    <Style x:Key="Number" TargetType="Label">
+        <Setter Property="FontFamily" Value="Display" />
+        <Setter Property="FontSize" Value="13.5" />
+        <Setter Property="TextColor" Value="{StaticResource Text}" />
+    </Style>
+    <Style x:Key="BigNumber" TargetType="Label">
+        <Setter Property="FontFamily" Value="DisplayHeavy" />
+        <Setter Property="FontSize" Value="18" />
+        <Setter Property="TextColor" Value="{StaticResource Text}" />
+    </Style>
+    <Style x:Key="Error" TargetType="Label">
+        <Setter Property="FontFamily" Value="InterMedium" />
+        <Setter Property="FontSize" Value="12.5" />
+        <Setter Property="TextColor" Value="{StaticResource Lose}" />
+    </Style>
+
+    <!-- ===== Cartes et blocs ===== -->
+    <Style x:Key="Card" TargetType="Border">
+        <Setter Property="BackgroundColor" Value="{StaticResource Card}" />
+        <Setter Property="Stroke" Value="{StaticResource Line}" />
+        <Setter Property="StrokeThickness" Value="1" />
+        <Setter Property="StrokeShape" Value="RoundRectangle 18" />
+        <Setter Property="Padding" Value="14" />
+    </Style>
+    <!-- Carte mise en avant (bordure accent) -->
+    <Style x:Key="CardAccent" TargetType="Border" BasedOn="{StaticResource Card}">
+        <Setter Property="Stroke" Value="{StaticResource Accent}" />
+    </Style>
+    <!-- Carte sans marge intérieure, pour les tableaux (lignes séparées par un trait) -->
+    <Style x:Key="TableCard" TargetType="Border" BasedOn="{StaticResource Card}">
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="StrokeShape" Value="RoundRectangle 16" />
+    </Style>
+    <Style x:Key="Tile" TargetType="Border">
+        <Setter Property="BackgroundColor" Value="{StaticResource CardAlt}" />
+        <Setter Property="StrokeThickness" Value="0" />
+        <Setter Property="StrokeShape" Value="RoundRectangle 12" />
+        <Setter Property="Padding" Value="12,10" />
+    </Style>
+    <Style x:Key="Pill" TargetType="Border">
+        <Setter Property="StrokeThickness" Value="0" />
+        <Setter Property="StrokeShape" Value="RoundRectangle 8" />
+        <Setter Property="Padding" Value="9,4" />
+        <Setter Property="VerticalOptions" Value="Center" />
+    </Style>
+    <Style x:Key="PillText" TargetType="Label">
+        <Setter Property="FontFamily" Value="InterSemiBold" />
+        <Setter Property="FontSize" Value="11.5" />
+    </Style>
+    <!-- Contrôle segmenté (« Tous / Joués / À venir ») : conteneur -->
+    <Style x:Key="SegmentBar" TargetType="Border">
+        <Setter Property="BackgroundColor" Value="{StaticResource Card}" />
+        <Setter Property="Stroke" Value="{StaticResource Line}" />
+        <Setter Property="StrokeThickness" Value="1" />
+        <Setter Property="StrokeShape" Value="RoundRectangle 12" />
+        <Setter Property="Padding" Value="4" />
+    </Style>
+    <!-- Pastille d'équipe (initiales) -->
+    <Style x:Key="Crest" TargetType="Border">
+        <Setter Property="BackgroundColor" Value="{StaticResource CardAlt}" />
+        <Setter Property="Stroke" Value="{StaticResource Line}" />
+        <Setter Property="StrokeThickness" Value="1" />
+        <Setter Property="StrokeShape" Value="RoundRectangle 14" />
+        <Setter Property="WidthRequest" Value="28" />
+        <Setter Property="HeightRequest" Value="28" />
+        <Setter Property="Padding" Value="0" />
+    </Style>
+    <Style x:Key="CrestText" TargetType="Label">
+        <Setter Property="FontFamily" Value="InterBold" />
+        <Setter Property="FontSize" Value="8.5" />
+        <Setter Property="TextColor" Value="{StaticResource TextMuted}" />
+        <Setter Property="HorizontalTextAlignment" Value="Center" />
+        <Setter Property="VerticalTextAlignment" Value="Center" />
+    </Style>
+    <!-- Bouton carré à icône (actualiser, filtre) -->
+    <Style x:Key="IconButton" TargetType="ImageButton">
+        <Setter Property="BackgroundColor" Value="{StaticResource Card}" />
+        <Setter Property="BorderColor" Value="{StaticResource Line}" />
+        <Setter Property="BorderWidth" Value="1" />
+        <Setter Property="CornerRadius" Value="12" />
+        <Setter Property="WidthRequest" Value="44" />
+        <Setter Property="HeightRequest" Value="44" />
+        <Setter Property="Padding" Value="12" />
+    </Style>
+
+    <!-- ===== Saisie ===== -->
+    <Style TargetType="Button">
+        <Setter Property="BackgroundColor" Value="{StaticResource Accent}" />
+        <Setter Property="TextColor" Value="{StaticResource OnAccent}" />
+        <Setter Property="FontFamily" Value="InterBold" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="CornerRadius" Value="14" />
+        <Setter Property="Padding" Value="16,12" />
+        <Setter Property="MinimumHeightRequest" Value="48" />
+    </Style>
+    <Style x:Key="GhostButton" TargetType="Button">
+        <Setter Property="BackgroundColor" Value="{StaticResource CardAlt}" />
+        <Setter Property="TextColor" Value="{StaticResource Text}" />
+        <Setter Property="BorderColor" Value="{StaticResource Line}" />
+        <Setter Property="BorderWidth" Value="1" />
+        <Setter Property="FontFamily" Value="InterSemiBold" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="CornerRadius" Value="14" />
+        <Setter Property="Padding" Value="14,10" />
+        <Setter Property="MinimumHeightRequest" Value="44" />
+    </Style>
+    <Style x:Key="DangerButton" TargetType="Button">
+        <Setter Property="BackgroundColor" Value="Transparent" />
+        <Setter Property="TextColor" Value="{StaticResource Lose}" />
+        <Setter Property="BorderColor" Value="{StaticResource Lose}" />
+        <Setter Property="BorderWidth" Value="1" />
+        <Setter Property="FontFamily" Value="InterSemiBold" />
+        <Setter Property="CornerRadius" Value="14" />
+        <Setter Property="MinimumHeightRequest" Value="48" />
+    </Style>
+    <Style TargetType="Entry">
+        <Setter Property="TextColor" Value="{StaticResource Text}" />
+        <Setter Property="PlaceholderColor" Value="{StaticResource TextDim}" />
+        <Setter Property="BackgroundColor" Value="{StaticResource CardAlt}" />
+        <Setter Property="FontFamily" Value="Inter" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="MinimumHeightRequest" Value="44" />
+    </Style>
+    <Style TargetType="Editor">
+        <Setter Property="TextColor" Value="{StaticResource Text}" />
+        <Setter Property="PlaceholderColor" Value="{StaticResource TextDim}" />
+        <Setter Property="BackgroundColor" Value="{StaticResource CardAlt}" />
+        <Setter Property="FontFamily" Value="Inter" />
+    </Style>
+    <Style TargetType="Picker">
+        <Setter Property="TextColor" Value="{StaticResource Text}" />
+        <Setter Property="TitleColor" Value="{StaticResource TextMuted}" />
+        <Setter Property="BackgroundColor" Value="{StaticResource CardAlt}" />
+        <Setter Property="FontFamily" Value="InterMedium" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="MinimumHeightRequest" Value="44" />
+    </Style>
+    <Style TargetType="DatePicker">
+        <Setter Property="TextColor" Value="{StaticResource Text}" />
+        <Setter Property="BackgroundColor" Value="{StaticResource CardAlt}" />
+        <Setter Property="FontFamily" Value="Inter" />
+    </Style>
+    <Style TargetType="Switch">
+        <Setter Property="OnColor" Value="{StaticResource AccentDark}" />
+        <Setter Property="ThumbColor" Value="{StaticResource Accent}" />
+    </Style>
+    <Style TargetType="ActivityIndicator">
+        <Setter Property="Color" Value="{StaticResource Accent}" />
+    </Style>
+    <Style TargetType="RefreshView">
+        <Setter Property="RefreshColor" Value="{StaticResource Accent}" />
+        <Setter Property="BackgroundColor" Value="{StaticResource Bg}" />
+    </Style>
+    <Style TargetType="BoxView">
+        <Setter Property="Color" Value="{StaticResource LineSoft}" />
+    </Style>
+
+    <!-- ===== Navigation (barre d'onglets, barre de titre des pages de détail) ===== -->
+    <Style TargetType="Shell" ApplyToDerivedTypes="True">
+        <Setter Property="Shell.BackgroundColor" Value="{StaticResource Bg}" />
+        <Setter Property="Shell.ForegroundColor" Value="{StaticResource Text}" />
+        <Setter Property="Shell.TitleColor" Value="{StaticResource Text}" />
+        <Setter Property="Shell.DisabledColor" Value="{StaticResource TextDim}" />
+        <Setter Property="Shell.UnselectedColor" Value="{StaticResource TextMuted}" />
+        <Setter Property="Shell.NavBarHasShadow" Value="False" />
+        <Setter Property="Shell.TabBarBackgroundColor" Value="{StaticResource Surface}" />
+        <Setter Property="Shell.TabBarForegroundColor" Value="{StaticResource Accent}" />
+        <Setter Property="Shell.TabBarTitleColor" Value="{StaticResource Accent}" />
+        <Setter Property="Shell.TabBarUnselectedColor" Value="{StaticResource TextDim}" />
+    </Style>
+
+</ResourceDictionary>
